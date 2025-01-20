@@ -1,5 +1,5 @@
-import 'package:budget_manager/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class SummaryScreen extends StatefulWidget {
   @override

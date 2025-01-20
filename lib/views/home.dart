@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:budget_manager/services/auth_service.dart';
 
+import '../services/auth_service.dart';
+import 'expenses.dart';
+import 'incomes.dart';
+import 'settings.dart';
+import 'statistics.dart';
 import 'summary.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -81,108 +85,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-}
-
-class ExpensesScreen extends StatefulWidget {
-  @override
-  _ExpensesScreenState createState() => _ExpensesScreenState();
-}
-
-class _ExpensesScreenState extends State<ExpensesScreen> {
-  final _authService = AuthService();
-  late Future<Map<String, dynamic>> _data;
-
-  @override
-  void initState() {
-    super.initState();
-    _data = _authService.get();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _data,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        } else {
-          return Center(child: Text("Data: ${snapshot.data}"));
-        }
-      },
-    );
-  }
-}
-
-class IncomesScreen extends StatefulWidget {
-  @override
-  _IncomesScreenState createState() => _IncomesScreenState();
-}
-
-class _IncomesScreenState extends State<IncomesScreen> {
-  final _authService = AuthService();
-  late Future<Map<String, dynamic>> _data;
-
-  @override
-  void initState() {
-    super.initState();
-    _data = _authService.get();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _data,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        } else {
-          return Center(child: Text("Data: ${snapshot.data}"));
-        }
-      },
-    );
-  }
-}
-
-class StatisticsScreen extends StatefulWidget {
-  @override
-  _StatisticsScreenState createState() => _StatisticsScreenState();
-}
-
-class _StatisticsScreenState extends State<StatisticsScreen> {
-  final _authService = AuthService();
-  late Future<Map<String, dynamic>> _data;
-
-  @override
-  void initState() {
-    super.initState();
-    _data = _authService.get();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _data,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        } else {
-          return Center(child: Text("Data: ${snapshot.data}"));
-        }
-      },
-    );
-  }
-}
-
-class SettingsScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Ekran Ustawień'));
   }
 }
