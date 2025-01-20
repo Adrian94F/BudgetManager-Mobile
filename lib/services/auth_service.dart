@@ -49,11 +49,11 @@ class AuthService {
     return accessToken != null;
   }
 
-  Future<Map<String, dynamic>> getData() async {
+  Future<Map<String, dynamic>> get([String url = "get-data"]) async {
     final accessToken = await storage.read(key: "access_token");
 
     final response = await http.get(
-      Uri.parse("$baseUrl/get-data/"),
+      Uri.parse("$baseUrl/$url/"),
       headers: {
         'Authorization': 'Bearer $accessToken',
       },
@@ -63,7 +63,7 @@ class AuthService {
       return json.decode(response.body);
     } else if (response.statusCode == 401) {
       await refreshToken();
-      return getData();
+      return get(url);
     } else {
       throw Exception("Failed to fetch data");
     }
