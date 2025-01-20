@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../services/auth_service.dart';
+import '../tools/formatters.dart';
 
 class IncomesScreen extends StatefulWidget {
   @override
@@ -67,7 +68,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "${income['value']}",
+                        "${Formatters.currencyFormatter.format(income['value'])}",
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
                       ),
                       Text(

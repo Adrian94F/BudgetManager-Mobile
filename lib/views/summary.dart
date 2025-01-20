@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../tools/formatters.dart';
 
 class SummaryScreen extends StatefulWidget {
   @override
@@ -60,13 +61,30 @@ class _SummaryScreenState extends State<SummaryScreen> {
                             field['name'],
                             style: const TextStyle(fontSize: 16.0),
                           ),
-                          Text(
-                            field['value'].toString(),
-                            style: const TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w500,
+                          if (!field.containsKey('type'))
+                            Text(
+                              Formatters.integerFormatter.format(field['value']),
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
+                          if (field['type'] == 'currency')
+                            Text(
+                              Formatters.currencyFormatter.format(field['value']),
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          if (field['type'] == 'percent')
+                            Text(
+                              "${Formatters.integerFormatter.format(field['value'])}%",
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                         ],
                       ),
                     );
