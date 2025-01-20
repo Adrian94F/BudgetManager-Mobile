@@ -60,7 +60,7 @@ class AuthService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      return json.decode(utf8.decode(response.bodyBytes));
     } else if (response.statusCode == 401) {
       await refreshToken();
       return get(url);
