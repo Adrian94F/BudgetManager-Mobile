@@ -40,14 +40,13 @@ class _IncomesScreenState extends State<IncomesScreen> {
               return Slidable(
                 key: Key(income['id'].toString()),
                 endActionPane: ActionPane(
-                  motion: ScrollMotion(), // Animacja przesunięcia
+                  motion: ScrollMotion(),
                   children: [
                     SlidableAction(
                       onPressed: (context) {
                         // TODO
                       },
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Colors.indigo,
                       icon: Icons.edit,
                       label: 'Edit',
                     ),
@@ -55,8 +54,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                       onPressed: (context) {
                         // TODO
                       },
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Colors.red,
                       icon: Icons.delete,
                       label: 'Remove',
                     ),
@@ -69,41 +67,43 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     children: [
                       Text(
                         "${Formatters.currencyFormatter.format(income['value'])}",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
                       ),
                       Text(
                         income['date'],
-                        style: TextStyle(color: Colors.grey, fontSize: 14.0),
+                        style: TextStyle(color: Colors.grey, fontSize: 16.0),
                       ),
                     ],
                   ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (income['comment'] != null && income['comment'].isNotEmpty)
+                  subtitle:  Container(
+                    margin: EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
                         Text(
                           income['comment'],
                           style: TextStyle(fontStyle: FontStyle.italic),
                         ),
-                      if (income['is_salary'] == true)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(top: 4.0),
-                              padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(4.0),
+                        if (income['is_salary'] == true)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(top: 4.0),
+                                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                child: Text(
+                                  "Salary",
+                                  style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                                ),
                               ),
-                              child: Text(
-                                "Salary",
-                                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        )
-                    ],
+                            ],
+                          )
+                      ],
+                    )
                   ),
                 ),
               );

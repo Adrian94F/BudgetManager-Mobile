@@ -46,7 +46,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                       style: const TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blueAccent,
+                        color: Colors.indigo,
                       ),
                     ),
                   ),

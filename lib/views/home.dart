@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Budget Manager"),
+        // title: Text("Budget Manager"),
         actions: [
           IconButton(
             icon: Icon(Icons.logout),

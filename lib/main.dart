@@ -29,6 +29,21 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/home': (context) => HomeScreen(),
       },
+      theme: ThemeData(
+        primaryColor: Colors.indigo,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.indigo),
+          titleTextStyle: TextStyle(color: Colors.indigo, fontSize: 20.0),
+        ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          selectedItemColor: Colors.indigo,
+          unselectedItemColor: Colors.grey,
+          backgroundColor: Colors.white,
+        ),
+        scaffoldBackgroundColor: Colors.white,
+      ),
     );
   }
 }
