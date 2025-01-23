@@ -3,10 +3,14 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
-  final String baseUrl = "http://10.0.2.2:8000/api";
   final storage = FlutterSecureStorage();
 
+  Future<String> getBaseUrl() async {
+    return "${await storage.read(key: "server_url") ?? "http://10.0.2.2:8000"}/api";
+  }
+
   Future<Map<String, dynamic>> login(String username, String password) async {
+    final baseUrl = await getBaseUrl();
     final response = await http.post(
       Uri.parse("$baseUrl/token/"),
       headers: {'Content-Type': 'application/json'},
@@ -31,6 +35,7 @@ class AuthService {
 
   Future<void> refreshToken() async {
     final refreshToken = await storage.read(key: "refresh_token");
+    final baseUrl = await getBaseUrl();
     final response = await http.post(
       Uri.parse("$baseUrl/token/refresh/"),
       body: {'refresh': refreshToken},
@@ -51,7 +56,7 @@ class AuthService {
 
   Future<Map<String, dynamic>> get([String url = "get-data"]) async {
     final accessToken = await storage.read(key: "access_token");
-
+    final baseUrl = await getBaseUrl();
     final response = await http.get(
       Uri.parse("$baseUrl/$url/"),
       headers: {
@@ -70,6 +75,7 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    await storage.deleteAll();
+    await storage.delete(key: "access_token");
+    await storage.delete(key: "refresh_token");
   }
 }

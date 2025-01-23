@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:budget_manager/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,9 +11,43 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _serverController = TextEditingController();
+  final _storage = FlutterSecureStorage();
   bool _rememberMe = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedData();
+  }
+
+  // Function to load server URL on init
+  Future<void> _loadSavedData() async {
+    final serverUrl = await _storage.read(key: "server_url");
+    if (serverUrl != null) {
+      _serverController.text = serverUrl; // Set the server URL in the text field
+    }
+    final login = await _storage.read(key: "login");
+    if (login != null) {
+      _usernameController.text = login;
+      _rememberMe = true;
+    }
+    final password = await _storage.read(key: "password");
+    if (password != null) {
+      _passwordController.text = password;
+    }
+  }
+
+  // Function to save the server URL
+  Future<void> _setServerUrl(String value) async {
+    await _storage.write(key: "server_url", value: value);
+  }
+
   Future<void> _login() async {
+    if (_rememberMe) {
+      await _storage.write(key: "login", value: _usernameController.text);
+      await _storage.write(key: "password", value: _passwordController.text);
+    }
     try {
       await _authService.login(
         _usernameController.text,
@@ -42,6 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: _passwordController,
               decoration: InputDecoration(labelText: "Password"),
               obscureText: true,
+            ),
+            TextField(
+              controller: _serverController,
+              decoration: InputDecoration(labelText: "Server URL"),
+              onChanged: _setServerUrl,
             ),
             Row(
               children: [
