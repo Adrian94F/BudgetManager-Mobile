@@ -31,23 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
     //_data = _authService.get();
   }
 
-  Future<void> _logout() async {
-    await _authService.logout();
-    Navigator.pushReplacementNamed(context, '/login');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // title: Text("Budget Manager"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
-      ),
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),

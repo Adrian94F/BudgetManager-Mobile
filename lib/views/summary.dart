@@ -29,73 +29,76 @@ class _SummaryScreenState extends State<SummaryScreen> {
         } else if (snapshot.hasData) {
           final data = snapshot.data!;
           final groups = data['groups'] as List<dynamic>;
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: groups.length,
-            itemBuilder: (context, index) {
-              final group = groups[index];
-              final fields = group['fields'] as List<dynamic>;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Group name
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      group['name'],
-                      style: const TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 16.0),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: groups.length,
+              itemBuilder: (context, index) {
+                final group = groups[index];
+                final fields = group['fields'] as List<dynamic>;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Group name
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        group['name'],
+                        style: const TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.indigo,
+                        ),
                       ),
                     ),
-                  ),
-                  // Group fields
-                  ...fields.map((field) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            field['name'],
-                            style: const TextStyle(fontSize: 16.0),
-                          ),
-                          if (!field.containsKey('type'))
+                    // Group fields
+                    ...fields.map((field) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
                             Text(
-                              Formatters.integerFormatter.format(field['value']),
-                              style: const TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              field['name'],
+                              style: const TextStyle(fontSize: 16.0),
                             ),
-                          if (field['type'] == 'currency')
-                            Text(
-                              Formatters.currencyFormatter.format(field['value']),
-                              style: const TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
+                            if (!field.containsKey('type'))
+                              Text(
+                                Formatters.integerFormatter.format(field['value']),
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                          if (field['type'] == 'percent')
-                            Text(
-                              "${Formatters.integerFormatter.format(field['value'])}%",
-                              style: const TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
+                            if (field['type'] == 'currency')
+                              Text(
+                                Formatters.currencyFormatter.format(field['value']),
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  if (index < groups.length - 1) const Divider()
-                ],
-              );
-            },
+                            if (field['type'] == 'percent')
+                              Text(
+                                "${Formatters.integerFormatter.format(field['value'])}%",
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    if (index < groups.length - 1) const Divider()
+                  ],
+                );
+              },
+            ),
           );
         } else {
-          return const Center(child: Text("No data"));
+          return const Center(child: Text("Error: no data!"));
         }
       },
     );
