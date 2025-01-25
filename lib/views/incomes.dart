@@ -25,7 +25,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
       future: _data,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
         } else if (snapshot.hasData) {
@@ -56,7 +56,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                 return Slidable(
                   key: Key(income['id'].toString()),
                   endActionPane: ActionPane(
-                    motion: ScrollMotion(),
+                    motion: const ScrollMotion(),
                     children: [
                       SlidableAction(
                         onPressed: (context) {
@@ -77,41 +77,43 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     ],
                   ),
                   child: ListTile(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "${Formatters.currencyFormatter.format(income['value'])}",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
+                          Formatters.currencyFormatter.format(income['value']),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
                         ),
                         Text(
                           income['date'],
-                          style: TextStyle(color: Colors.grey, fontSize: 16.0),
+                          style: const TextStyle(color: Colors.grey, fontSize: 16.0),
                         ),
                       ],
                     ),
                     subtitle:  Container(
-                      margin: EdgeInsets.only(top: 8.0),
+                      margin: const EdgeInsets.only(top: 8.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             income['comment'],
-                            style: TextStyle(fontStyle: FontStyle.italic),
+                            style: const TextStyle(fontStyle: FontStyle.italic),
                           ),
                           if (income['is_salary'] == true)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 Container(
-                                  margin: EdgeInsets.only(top: 4.0),
-                                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  margin: const EdgeInsets.only(top: 4.0),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade500,
+                                    color: Theme.of(context).brightness == Brightness.light
+                                        ? Colors.grey.shade100
+                                        : Colors.grey.shade800,
                                     borderRadius: BorderRadius.circular(4.0),
                                   ),
-                                  child: Text(
+                                  child: const Text(
                                     "Salary",
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
@@ -126,7 +128,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
               },
             ));
         } else {
-          return Center(child: Text("Error: no data!"));
+          return const Center(child: Text("Error: no data!"));
         }
       },
     );
