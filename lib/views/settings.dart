@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:budget_manager/services/auth_service.dart';
 
+import 'app_settings.dart';
+
 class SettingsScreen extends StatelessWidget {
   final AuthService _authService = AuthService();
+  final Future<void> Function(String) setThemeMode;
+
+  SettingsScreen({Key? key, required this.setThemeMode}) : super(key: key);
 
   Future<void> _logout(BuildContext context) async {
     await _authService.logout();
@@ -30,7 +35,10 @@ class SettingsScreen extends StatelessWidget {
               title: const Text("App settings"),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () {
-                // TODO
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AppSettingsScreen(setThemeMode: setThemeMode,)),
+                );
               },
             ),
             ListTile(

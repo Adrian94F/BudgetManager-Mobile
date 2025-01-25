@@ -8,27 +8,30 @@ import 'statistics.dart';
 import 'summary.dart';
 
 class HomeScreen extends StatefulWidget {
+  final Future<void> Function(String) setThemeMode;
+
+  const HomeScreen({Key? key, required this.setThemeMode}) : super(key: key);
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
-  //late Future<Map<String, dynamic>> _data;
 
   int _currentIndex = 2; // default view
-  final List<Widget> _screens = [
-    ExpensesScreen(),
-    IncomesScreen(),
-    SummaryScreen(),
-    StatisticsScreen(),
-    SettingsScreen(),
-  ];
+  late List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
-    //_data = _authService.get();
+    _screens = [
+      ExpensesScreen(),
+      IncomesScreen(),
+      SummaryScreen(),
+      StatisticsScreen(),
+      SettingsScreen(setThemeMode: widget.setThemeMode), // Przekazujemy funkcję tutaj
+    ];
   }
 
   @override
@@ -36,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
+        shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
@@ -46,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _currentIndex = index;
             });
           },
-          items: [
+          items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.shopping_cart),
               label: 'Expenses',

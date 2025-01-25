@@ -1,12 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:budget_manager/views/login.dart';
 import 'package:budget_manager/views/home.dart';
 import 'package:budget_manager/services/auth_service.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   final _authService = AuthService();
+  final _storage = FlutterSecureStorage();
+  ThemeMode _themeMode = ThemeMode.system;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeMode();
+  }
+
+  Future<void> _loadThemeMode() async {
+    final theme = await _storage.read(key: "theme_mode") ?? "system";
+    setState(() {
+      _themeMode = _getThemeMode(theme);
+    });
+  }
+
+  ThemeMode _getThemeMode(String mode) {
+    switch (mode) {
+      case "light":
+        return ThemeMode.light;
+      case "dark":
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  Future<void> _setThemeMode(String mode) async {
+    await _storage.write(key: "theme_mode", value: mode);
+    setState(() {
+      _themeMode = _getThemeMode(mode);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,21 +57,28 @@ class MyApp extends StatelessWidget {
           future: _authService.isAuthenticated(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.data == true) {
-              return HomeScreen();
+              return HomeScreen(setThemeMode: _setThemeMode);
             } else {
               return LoginScreen();
             }
           },
         ),
         '/login': (context) => LoginScreen(),
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => HomeScreen(setThemeMode: _setThemeMode),
       },
       theme: ThemeData(
         colorSchemeSeed: Colors.indigo,
         useMaterial3: true,
+        brightness: Brightness.light,
       ),
+      darkTheme: ThemeData(
+        colorSchemeSeed: Colors.indigo,
+        useMaterial3: true,
+        brightness: Brightness.dark,
+      ),
+      themeMode: _themeMode,
     );
   }
 }

@@ -108,12 +108,12 @@ class _IncomesScreenState extends State<IncomesScreen> {
                                   margin: EdgeInsets.only(top: 4.0),
                                   padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
+                                    color: Colors.grey.shade500,
                                     borderRadius: BorderRadius.circular(4.0),
                                   ),
                                   child: Text(
                                     "Salary",
-                                    style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                                    style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
