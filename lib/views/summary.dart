@@ -29,72 +29,96 @@ class _SummaryScreenState extends State<SummaryScreen> {
         } else if (snapshot.hasData) {
           final data = snapshot.data!;
           final groups = data['groups'] as List<dynamic>;
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 16.0),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: groups.length,
-              itemBuilder: (context, index) {
-                final group = groups[index];
-                final fields = group['fields'] as List<dynamic>;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Group name
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        group['name'],
-                        style: const TextStyle(
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo,
-                        ),
+
+          return Scaffold(
+            // appBar: AppBar(
+            //   title: const Text("Summary"),
+            //   centerTitle: true,
+            // ),
+            body: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(64.0),
+                  color: Colors.grey.shade200, // Placeholder background color
+                  child: const Center(
+                    child: Text(
+                      "chart",
+                      style: TextStyle(
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    // Group fields
-                    ...fields.map((field) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              field['name'],
-                              style: const TextStyle(fontSize: 16.0),
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: groups.length,
+                    itemBuilder: (context, index) {
+                      final group = groups[index];
+                      final fields = group['fields'] as List<dynamic>;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Group name
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text(
+                              group['name'],
+                              style: const TextStyle(
+                                fontSize: 20.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo,
+                              ),
                             ),
-                            if (!field.containsKey('type'))
-                              Text(
-                                Formatters.integerFormatter.format(field['value']),
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                          ),
+                          // Group fields
+                          ...fields.map((field) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    field['name'],
+                                    style: const TextStyle(fontSize: 16.0),
+                                  ),
+                                  if (!field.containsKey('type'))
+                                    Text(
+                                      Formatters.integerFormatter.format(field['value']),
+                                      style: const TextStyle(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  if (field['type'] == 'currency')
+                                    Text(
+                                      Formatters.currencyFormatter.format(field['value']),
+                                      style: const TextStyle(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  if (field['type'] == 'percent')
+                                    Text(
+                                      "${Formatters.integerFormatter.format(field['value'])}%",
+                                      style: const TextStyle(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                ],
                               ),
-                            if (field['type'] == 'currency')
-                              Text(
-                                Formatters.currencyFormatter.format(field['value']),
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            if (field['type'] == 'percent')
-                              Text(
-                                "${Formatters.integerFormatter.format(field['value'])}%",
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                          ],
-                        ),
+                            );
+                          }).toList(),
+                          if (index < groups.length - 1) const Divider()
+                        ],
                       );
-                    }).toList(),
-                    if (index < groups.length - 1) const Divider()
-                  ],
-                );
-              },
+                    },
+                  ),
+                ),
+              ],
             ),
           );
         } else {
