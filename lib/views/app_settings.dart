@@ -1,27 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class AppSettingsScreen extends StatelessWidget {
+class AppSettingsScreen extends StatefulWidget {
   final Future<void> Function(String) setThemeMode;
+
+  const AppSettingsScreen({Key? key, required this.setThemeMode})
+      : super(key: key);
+
+  @override
+  _AppSettingsScreenState createState() => _AppSettingsScreenState();
+}
+
+class _AppSettingsScreenState extends State<AppSettingsScreen> {
   final TextEditingController _serverController = TextEditingController();
   final FlutterSecureStorage _storage = FlutterSecureStorage();
+  String _currentTheme = "system";
 
-  AppSettingsScreen({Key? key, required this.setThemeMode}) : super(key: key);
-
-  ThemeMode _getThemeMode(String mode) {
-    switch (mode) {
-      case "light":
-        return ThemeMode.light;
-      case "dark":
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
-    }
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
   }
 
-  Future<void> _loadServerUrl() async {
+  Future<void> _loadSettings() async {
+    final theme = await _storage.read(key: "theme_mode") ?? "system";
+    setState(() {
+      _currentTheme = theme;
+    });
+
     final serverUrl = await _storage.read(key: 'server_url');
     _serverController.text = serverUrl ?? '';
+  }
+
+  Future<void> _saveTheme(String theme) async {
+    await _storage.write(key: "theme_mode", value: theme);
+    widget.setThemeMode(theme);
   }
 
   Future<void> _saveServerUrl(BuildContext context) async {
@@ -29,20 +42,18 @@ class AppSettingsScreen extends StatelessWidget {
     if (newUrl.isNotEmpty) {
       await _storage.write(key: 'server_url', value: newUrl);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Server URL updated. Please log in again.")),
+        const SnackBar(content: Text("Server URL updated. Please log in again.")),
       );
       Navigator.pushReplacementNamed(context, '/login');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Server URL cannot be empty.")),
+        const SnackBar(content: Text("Server URL cannot be empty.")),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    _loadServerUrl();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("App Settings"),
@@ -61,7 +72,7 @@ class AppSettingsScreen extends StatelessWidget {
             ListTile(
               title: const Text("Theme"),
               trailing: DropdownButton<String>(
-                value: "system",
+                value: _currentTheme,
                 items: const [
                   DropdownMenuItem(
                     value: "light",
@@ -78,7 +89,10 @@ class AppSettingsScreen extends StatelessWidget {
                 ],
                 onChanged: (value) {
                   if (value != null) {
-                    setThemeMode(value);
+                    setState(() {
+                      _currentTheme = value;
+                    });
+                    _saveTheme(value);
                   }
                 },
               ),
@@ -86,7 +100,7 @@ class AppSettingsScreen extends StatelessWidget {
             const SizedBox(height: 32),
             const Text(
               "Connection",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextFormField(
