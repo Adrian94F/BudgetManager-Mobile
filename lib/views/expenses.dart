@@ -14,7 +14,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   @override
   void initState() {
     super.initState();
-    _data = _authService.get();
+    _data = _authService.get("get-expenses");
   }
 
   @override
@@ -26,8 +26,23 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
+        } else if (snapshot.hasData) {
+          final data = snapshot.data!;
+          final expenses = data['expenses'] as List<dynamic>;
+          final categories = data['categories'] as List<dynamic>;
+
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                "Expenses",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              shadowColor: Theme.of(context).colorScheme.shadow,
+              centerTitle: true,
+            )
+          );
         } else {
-          return Center(child: Text("Data: ${snapshot.data}"));
+          return const Center(child: Text("Error: no data!"));
         }
       },
     );
