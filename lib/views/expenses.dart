@@ -51,10 +51,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                   controller: _list_table_switch,
                   activeColor: Theme.of(context).brightness == Brightness.light
                       ? Colors.indigo.shade50
-                      : Colors.indigo.shade900,
+                      : Colors.grey.shade800,
                   inactiveColor: Theme.of(context).brightness == Brightness.light
                       ? Colors.indigo.shade50
-                      : Colors.indigo.shade900,
+                      : Colors.grey.shade800,
                   activeChild: Icon(
                     Icons.grid_view_rounded,
                     color: Theme.of(context).brightness == Brightness.light

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-
 import '../tools/formatters.dart';
 
 class ExpensesListView extends StatelessWidget {
@@ -10,7 +9,10 @@ class ExpensesListView extends StatelessWidget {
   const ExpensesListView({Key? key, required this.expenses, required this.categories}) : super(key: key);
 
   String getCategoryName(int categoryId) {
-    final category = categories.firstWhere((element) => element['id'] == categoryId);
+    final category = categories.firstWhere(
+        (element) => element['id'] == categoryId,
+        orElse: () => {'name': '–'}
+    );
     return category['name'];
   }
 
@@ -45,57 +47,74 @@ class ExpensesListView extends StatelessWidget {
             ],
           ),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   Formatters.currencyFormatter.format(expense['value']),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
                 ),
-                Container(
-                  margin: const EdgeInsets.only(top: 4.0),
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.light
-                        ? Colors.grey.shade100
-                        : Colors.grey.shade800,
-                    borderRadius: BorderRadius.circular(4.0),
-                  ),
-                  child: Text(
-                    getCategoryName(expense['category']),
-                  ),
-                ),
+                Text(
+                  expense['date'],
+                  style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                )
               ],
             ),
-            subtitle:  Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  expense['comment'],
-                  //style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-                if (expense['is_monthly_expense'] == true)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.only(top: 4.0),
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.light
-                              ? Colors.grey.shade100
-                              : Colors.grey.shade800,
-                          borderRadius: BorderRadius.circular(4.0),
-                        ),
-                        child: const Text(
-                          "Monthly",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+            subtitle: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      expense['comment'],
+                    ),
+                  ),
+                  if (expense['is_monthly'] == true)
+                    Container(
+                      margin: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.indigo.shade50
+                            : Colors.grey.shade900,
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                      child: Icon(
+                        Icons.repeat,
+                        size: 20,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.grey.shade900
+                            : Colors.grey.shade100,
+                      ),
+                    ),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.5),
+                    child:
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 4.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.indigo.shade50
+                            : Colors.grey.shade900,
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                      child: Text(
+                        getCategoryName(expense['category']),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: Theme.of(context).brightness == Brightness.light
+                                ? Colors.grey.shade900
+                                : Colors.grey.shade100
                         ),
                       ),
-                    ],
-                  )
-              ],
+                    ),
+                  ),
+                ]
             ),
           ),
         );
