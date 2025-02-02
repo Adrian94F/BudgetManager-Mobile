@@ -50,6 +50,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
             ),
             body: ListView.builder(
               itemCount: incomes.length,
+              padding: const EdgeInsets.only(bottom: 80),
               itemBuilder: (context, index) {
                 final income = incomes[index];
 

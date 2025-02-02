@@ -28,6 +28,7 @@ class ExpensesListView extends StatelessWidget {
         ),
       body: ListView.builder(
         itemCount: expenses.length,
+        padding: const EdgeInsets.only(bottom: 80),
         itemBuilder: (context, index) {
           final expense = expenses[index];
 
