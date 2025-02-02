@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.frydm_n.budget_manager">
    <application
-        android:label="budget_manager"
+        android:label="Budget Manager"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
