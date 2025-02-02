@@ -66,10 +66,12 @@ class _SummaryScreenState extends State<SummaryScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: Text(
                               group['name'],
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20.0,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.indigo,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Theme.of(context).primaryColorLight
+                                    : Theme.of(context).primaryColor
                               ),
                             ),
                           ),
@@ -112,7 +114,8 @@ class _SummaryScreenState extends State<SummaryScreen> {
                               ),
                             );
                           }).toList(),
-                          if (index < groups.length - 1) const Divider()
+                          if (index < groups.length - 1)
+                            const SizedBox(height: 16)
                         ],
                       );
                     },
