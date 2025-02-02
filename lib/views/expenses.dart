@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 
 import '../services/auth_service.dart';
+import '../tools/formatters.dart';
 import 'expenses_list.dart';
 import 'expenses_table.dart';
 
@@ -37,6 +38,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           final data = snapshot.data!;
           final expenses = data['expenses'] as List<dynamic>;
           final categories = data['categories'] as List<dynamic>;
+          final month = data['month'] as Map<String, dynamic>;
 
           return Scaffold(
             appBar: AppBar(
@@ -75,7 +77,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               ],
             ),
             body: _list_table_switch.value
-                ? ExpensesTableView(expenses: expenses)
+                ? ExpensesTableView(expenses_table: GenerateExpensesTable(expenses, categories, month))
                 : ExpensesListView(expenses: expenses, categories: categories),
           );
         } else {
@@ -85,3 +87,61 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     );
   }
 }
+
+List<List<dynamic>> GenerateExpensesTable(List<dynamic> expenses, List<dynamic> categories, Map<String, dynamic> month) {
+  if (expenses.isEmpty) return [];
+
+  final begin_date = month['start_date'];
+  final end_date = month['end_date'];
+
+  final Map<DateTime, double> dateSums = {};
+  final Map<int, double> categorySums = {};
+  final Map<int, Map<DateTime, double>> categoryDateSums = {};
+
+  for (var expense in expenses) {
+    var category = expense['category'];
+    DateTime date = DateTime.parse(expense['date']);
+    double value = (expense['value'] as num).toDouble();
+    dateSums[date] = (dateSums[date] ?? 0.0) + value;
+    categorySums[category] = (categorySums[category] ?? 0.0) + value;
+    categoryDateSums[category] = categoryDateSums[category] ?? {};
+    categoryDateSums[category]![date] = (categoryDateSums[category]![date] ?? 0.0) + value;
+  }
+
+  List<dynamic> headerRow = [{}];
+
+  var begin_date_obj = DateTime.parse(begin_date);
+  var end_date_obj = DateTime.parse(end_date);
+
+  for (var date = begin_date_obj; date.isBefore(end_date_obj); date = date.add(const Duration(days: 1))) {
+    var data = {
+      "content" : date.day.toString(),
+      "date" : date
+    };
+    headerRow = headerRow + [data];
+  }
+
+  List<List<dynamic>> tableRows = [headerRow];
+
+  for (var category in categories) {
+    var data = {
+      "content" : category['name'],
+      "category" : category["id"]
+    };
+    List<dynamic> categoryRow = [data];
+    for (var date = begin_date_obj; date.isBefore(end_date_obj); date = date.add(const Duration(days: 1))) {
+      var sum_number = categoryDateSums[category['id']]?[date] ?? 0.0;
+      var sum = sum_number != 0.0 ? Formatters.integerFormatter.format(sum_number) : "";
+      var data = {
+        "content" : sum,
+        "date" : date,
+        "category" : category["id"]
+      };
+      categoryRow = categoryRow + [data];
+    }
+    tableRows = tableRows + [categoryRow];
+  }
+
+  return tableRows;
+}
+
