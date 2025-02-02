@@ -36,6 +36,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         } else if (snapshot.hasData) {
           final data = snapshot.data!;
           final expenses = data['expenses'] as List<dynamic>;
+          final categories = data['categories'] as List<dynamic>;
 
           return Scaffold(
             appBar: AppBar(
@@ -75,7 +76,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             ),
             body: _list_table_switch.value
                 ? ExpensesTableView(expenses: expenses)
-                : ExpensesListView(expenses: expenses),
+                : ExpensesListView(expenses: expenses, categories: categories),
           );
         } else {
           return const Center(child: Text("Error: no data!"));
