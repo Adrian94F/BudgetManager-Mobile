@@ -18,107 +18,116 @@ class ExpensesListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: expenses.length,
-      itemBuilder: (context, index) {
-        final expense = expenses[index];
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+        // TODO
+        },
+        label: const Text('Add'),
+        icon: const Icon(Icons.add),
+        ),
+      body: ListView.builder(
+        itemCount: expenses.length,
+        itemBuilder: (context, index) {
+          final expense = expenses[index];
 
-        return Slidable(
-          key: Key(expense['id'].toString()),
-          endActionPane: ActionPane(
-            motion: const ScrollMotion(),
-            children: [
-              SlidableAction(
-                onPressed: (context) {
-                  // TODO
-                },
-                foregroundColor: Colors.indigo,
-                icon: Icons.edit,
-                label: 'Edit',
-              ),
-              SlidableAction(
-                onPressed: (context) {
-                  // TODO
-                },
-                foregroundColor: Colors.red,
-                icon: Icons.delete,
-                label: 'Remove',
-              ),
-            ],
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          return Slidable(
+            key: Key(expense['id'].toString()),
+            endActionPane: ActionPane(
+              motion: const ScrollMotion(),
               children: [
-                Text(
-                  Formatters.currencyFormatter.format(expense['value']),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                SlidableAction(
+                  onPressed: (context) {
+                    // TODO
+                  },
+                  foregroundColor: Colors.indigo,
+                  icon: Icons.edit,
+                  label: 'Edit',
                 ),
-                Text(
-                  expense['date'],
-                  style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-                )
+                SlidableAction(
+                  onPressed: (context) {
+                    // TODO
+                  },
+                  foregroundColor: Colors.red,
+                  icon: Icons.delete,
+                  label: 'Remove',
+                ),
               ],
             ),
-            subtitle: Row(
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
+              title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: Text(
-                      expense['comment'],
-                    ),
+                  Text(
+                    Formatters.currencyFormatter.format(expense['value']),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
                   ),
-                  if (expense['is_monthly'] == true)
-                    Container(
-                      margin: const EdgeInsetsDirectional.symmetric(horizontal: 10),
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.light
-                            ? Colors.indigo.shade50
-                            : Colors.grey.shade900,
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      child: Icon(
-                        Icons.repeat,
-                        size: 20,
-                        color: Theme.of(context).brightness == Brightness.light
-                            ? Colors.grey.shade900
-                            : Colors.grey.shade100,
+                  Text(
+                    expense['date'],
+                    style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                  )
+                ],
+              ),
+              subtitle: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        expense['comment'],
                       ),
                     ),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.5),
-                    child:
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.light
-                            ? Colors.indigo.shade50
-                            : Colors.grey.shade900,
-                        borderRadius: BorderRadius.circular(4.0),
+                    if (expense['is_monthly'] == true)
+                      Container(
+                        margin: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.light
+                              ? Colors.indigo.shade50
+                              : Colors.grey.shade900,
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Icon(
+                          Icons.repeat,
+                          size: 20,
+                          color: Theme.of(context).brightness == Brightness.light
+                              ? Colors.grey.shade900
+                              : Colors.grey.shade100,
+                        ),
                       ),
-                      child: Text(
-                        getCategoryName(expense['category']),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.light
-                                ? Colors.grey.shade900
-                                : Colors.grey.shade100
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.5),
+                      child:
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0,
+                            vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.light
+                              ? Colors.indigo.shade50
+                              : Colors.grey.shade900,
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Text(
+                          getCategoryName(expense['category']),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey.shade900
+                                  : Colors.grey.shade100
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ]
+                  ]
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
