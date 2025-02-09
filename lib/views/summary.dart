@@ -63,7 +63,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                         children: [
                           // Group name
                           Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: Text(
                               group['name'],
                               style: TextStyle(

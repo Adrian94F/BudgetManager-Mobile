@@ -33,14 +33,6 @@ class _IncomesScreenState extends State<IncomesScreen> {
           final incomes = data['incomes'] as List<dynamic>;
 
           return Scaffold(
-            appBar: AppBar(
-              title: const Text(
-                "Incomes",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              shadowColor: Theme.of(context).colorScheme.shadow,
-              centerTitle: true,
-              ),
             floatingActionButton: FloatingActionButton.extended(
               onPressed: () {
                 // TODO

@@ -17,13 +17,6 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Settings",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

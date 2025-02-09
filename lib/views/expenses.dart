@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 
 import '../services/auth_service.dart';
-import '../tools/formatters.dart';
 import 'expenses_list.dart';
 import 'expenses_table.dart';
 
 class ExpensesScreen extends StatefulWidget {
+  final void Function(Widget?) setCustomAction;
+
+  const ExpensesScreen({Key? key, required this.setCustomAction}) : super(key: key);
+
   @override
   _ExpensesScreenState createState() => _ExpensesScreenState();
 }
@@ -22,6 +25,34 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     _data = _authService.get("get-expenses");
     _list_table_switch.addListener(() {
       setState(() {});
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.setCustomAction(
+          AdvancedSwitch(
+            controller: _list_table_switch,
+            width: 60.0,
+            height: 28.0,
+            borderRadius: BorderRadius.circular(16.0),
+            activeColor: Theme.of(context).brightness == Brightness.light
+                ? Colors.indigo.shade50
+                : Colors.grey.shade800,
+            inactiveColor: Theme.of(context).brightness == Brightness.light
+                ? Colors.indigo.shade50
+                : Colors.grey.shade800,
+            activeChild: Icon(
+              Icons.grid_view_rounded,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
+            inactiveChild: Icon(
+              Icons.table_rows_rounded,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
+          )
+      );
     });
   }
 
@@ -41,41 +72,13 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           final month = data['month'] as Map<String, dynamic>;
 
           return Scaffold(
-            appBar: AppBar(
-              title: const Text(
-                "Expenses",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              shadowColor: Theme.of(context).colorScheme.shadow,
-              centerTitle: true,
-              actions: [
-                AdvancedSwitch(
-                  controller: _list_table_switch,
-                  activeColor: Theme.of(context).brightness == Brightness.light
-                      ? Colors.indigo.shade50
-                      : Colors.grey.shade800,
-                  inactiveColor: Theme.of(context).brightness == Brightness.light
-                      ? Colors.indigo.shade50
-                      : Colors.grey.shade800,
-                  activeChild: Icon(
-                    Icons.grid_view_rounded,
-                    color: Theme.of(context).brightness == Brightness.light
-                        ? Colors.black
-                        : Colors.white,
-                  ),
-                  inactiveChild: Icon(
-                    Icons.table_rows_rounded,
-                    color: Theme.of(context).brightness == Brightness.light
-                        ? Colors.black
-                        : Colors.white,
-                  ),
-                  width: 60.0,
-                  height: 28.0,
-                  borderRadius: BorderRadius.circular(16.0),
-                ),
-                const SizedBox(width: 10),
-              ],
-            ),
+            // appBar: AppBar(
+            //   shadowColor: Theme.of(context).colorScheme.shadow,
+            //   centerTitle: true,
+            //   // actions: [
+            //   //   const SizedBox(width: 10),
+            //   // ],
+            // ),
             body: _list_table_switch.value
                 ? ExpensesTableView(expenses: expenses, categories: categories, month: month)
                 : ExpensesListView(expenses: expenses, categories: categories),
