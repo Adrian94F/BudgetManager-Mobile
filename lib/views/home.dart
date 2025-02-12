@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../services/auth_service.dart';
 import 'expenses.dart';
 import 'incomes.dart';
 import 'settings.dart';
-import 'statistics.dart';
 import 'summary.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,12 +18,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
+  final _storage = const FlutterSecureStorage();
+
   int _currentIndex = 0;
   bool _monthRelated = true;
   final _monthRelatedViews = 3;
   late List<Widget> _screens;
   late List<String> _screen_titles;
-  late dynamic _data;
+  late Future<Map<String, dynamic>> _data;
+  int? _currentMonth;
+  Widget? _customAction;
+
   static const List<BottomNavigationBarItem> _items = [
     BottomNavigationBarItem(
       icon: Icon(Icons.home_filled),
@@ -37,16 +42,11 @@ class _HomeScreenState extends State<HomeScreen> {
       icon: Icon(Icons.attach_money),
       label: 'Incomes',
     ),
-    // BottomNavigationBarItem(
-    //   icon: Icon(Icons.bar_chart),
-    //   label: 'Statistics',
-    // ),
     BottomNavigationBarItem(
       icon: Icon(Icons.settings),
       label: 'Settings',
     ),
   ];
-  Widget? _customAction;
 
   Future<void> _logout(BuildContext context) async {
     await _authService.logout();
@@ -59,22 +59,35 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Pobiera login z SecureStorage i aktualizuje tytuł ekranu
+  Future<void> _loadUserName() async {
+    String? login = await _storage.read(key: "login");
+    if (login != null) {
+      setState(() {
+        _screen_titles[0] = "Hello, $login!";
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _data = _authService.get();
+    _loadUserName();
+
+    var getDataUrl = "get-data${_currentMonth != null ? "/$_currentMonth" : ""}";
+    _data = _authService.get(getDataUrl);
+
     _screens = [
       SummaryScreen(),
       ExpensesScreen(setCustomAction: _setCustomAction),
       IncomesScreen(),
-      //StatisticsScreen(),
       SettingsScreen(setThemeMode: widget.setThemeMode),
     ];
+
     _screen_titles = [
-      "Summary",
+      "Hello!",
       "Expenses",
       "Incomes",
-      //"Statistics",
       "Settings",
     ];
   }
@@ -88,10 +101,8 @@ class _HomeScreenState extends State<HomeScreen> {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             _logout(context);
-            return Center(child: Text("Error: ${snapshot.error}"));
+            return const Center(child: CircularProgressIndicator());
           } else {
-            _screen_titles[0] = "Hello, ${snapshot.data!['username']}!";
-
             return Scaffold(
               body: _screens[_currentIndex],
               appBar: AppBar(
@@ -100,7 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 shadowColor: Theme.of(context).colorScheme.shadow,
-                // centerTitle: true,
                 actions: [
                   if (_customAction != null) _customAction!,
                   SizedBox(width: _customAction != null ? 10 : 0),
@@ -119,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (_monthRelated) MenuAnchor(
                     builder: (context, controller, child) {
                       return IconButton(
-                        icon: const Icon(Icons.more_vert),
+                        icon: const Icon(Icons.calendar_month_rounded),
                         onPressed: () {
                           if (controller.isOpen) {
                             controller.close();
@@ -131,16 +141,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     menuChildren: [
                       MenuItemButton(
-                        onPressed: () => print("Select selected"),
-                        child: const Text("Select month"),
+                          child: const Text("Details"),
+                          onPressed: () {
+                            // TODO
+                          }
                       ),
                       MenuItemButton(
-                        onPressed: () => print("Details selected"),
-                        child: const Text("Details"),
+                        child: const Text("Select"),
+                        onPressed: () {
+                          // TODO
+                        }
                       ),
                       MenuItemButton(
-                        onPressed: () => print("New selected"),
                         child: const Text("New month"),
+                        onPressed: () {
+                          // TODO
+                        }
                       ),
                     ],
                   ),
