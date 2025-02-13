@@ -66,11 +66,16 @@ class _SummaryScreenState extends State<SummaryScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(64.0),
-      color: Colors.grey.shade200,
-      child: const Center(
+      color: Theme.of(context).brightness == Brightness.light
+          ? Colors.grey.shade200
+          : Colors.grey.shade900,
+      child: Center(
         child: Text(
           "chart",
-          style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 24.0,
+              color: Theme.of(context).scaffoldBackgroundColor,
+              fontWeight: FontWeight.bold),
         ),
       ),
     );
