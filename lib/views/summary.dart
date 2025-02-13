@@ -53,6 +53,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
         return Column(
           children: [
+            _buildMonthHeader(data['dates']),
             _buildChartPlaceholder(),
             Expanded(child: _buildSummaryList(groups, context)),
           ],
@@ -75,9 +76,26 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 
+  Widget _buildMonthHeader(String dates) {
+    return Container(
+        padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0, vertical: 4.0),
+        alignment: Alignment.centerLeft,
+        child: Text(
+          dates,
+          style: TextStyle(
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Theme.of(context).primaryColorLight
+                : Theme.of(context).primaryColor,
+          ),
+        )
+    );
+  }
+
   Widget _buildSummaryList(List<dynamic> groups, BuildContext context) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(8.0),
       itemCount: groups.length,
       itemBuilder: (context, index) {
         final group = groups[index];
@@ -86,7 +104,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
           children: [
             _buildGroupTitle(group['name'], context),
             ..._buildGroupFields(group['fields']),
-            if (index < groups.length - 1) const SizedBox(height: 16),
+            if (index < groups.length - 1) const SizedBox(height: 8),
           ],
         );
       },
