@@ -74,8 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadUserName();
 
-    var getDataUrl = "get-data${_currentMonth != null ? "/$_currentMonth" : ""}";
-    _data = _authService.get(getDataUrl);
+    _data = _authService.get("get-data");
 
     _screens = [
       SummaryScreen(),
@@ -103,11 +102,29 @@ class _HomeScreenState extends State<HomeScreen> {
             _logout(context);
             return const Center(child: CircularProgressIndicator());
           } else {
+            var months = snapshot.data!['months'] as List<dynamic>;
+            var previousEnabled = false;
+            var nextEnabled = false;
+            if (months.isNotEmpty) {
+              if (_currentMonth != null && _currentMonth != months[0]['id']) {
+                nextEnabled = true;
+              }
+              if (_currentMonth != months[months.length - 1]['id']) {
+                previousEnabled = true;
+              }
+            }
+
+            var currentMonthIdx = months.indexWhere((month) => month['id'] == _currentMonth);
+            if (currentMonthIdx < 0) {
+              currentMonthIdx = 0;
+            }
+
             return Scaffold(
               body: _screens[_currentIndex],
               appBar: AppBar(
                 title: Text(
                   _screen_titles[_currentIndex],
+                  //"${_screen_titles[_currentIndex]}\n${months[currentMonthIdx]["dates"]}",
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 shadowColor: Theme.of(context).colorScheme.shadow,
@@ -116,15 +133,27 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(width: _customAction != null ? 10 : 0),
                   if (_monthRelated) IconButton(
                       icon: const Icon(Icons.arrow_back_ios_rounded),
-                      onPressed: () {
-                        // TODO
-                      }
+                      onPressed: previousEnabled
+                          ? () {
+                              if (currentMonthIdx < months.length - 1) {
+                                setState(() {
+                                  _currentMonth = months[currentMonthIdx + 1]['id'];
+                                });
+                              }
+                            }
+                          : null,
                   ),
                   if (_monthRelated) IconButton(
                       icon: const Icon(Icons.arrow_forward_ios_rounded),
-                      onPressed: () {
-                        // TODO
-                      }
+                      onPressed: nextEnabled
+                          ? () {
+                              if (currentMonthIdx > 0) {
+                                setState(() {
+                                  _currentMonth = months[currentMonthIdx - 1]['id'];
+                                });
+                              }
+                            }
+                          : null,
                   ),
                   if (_monthRelated) MenuAnchor(
                     builder: (context, controller, child) {
