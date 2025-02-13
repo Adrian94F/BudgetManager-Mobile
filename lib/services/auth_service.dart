@@ -58,7 +58,7 @@ class AuthService {
     final accessToken = await storage.read(key: "access_token");
     final baseUrl = await getBaseUrl();
     final response = await http.get(
-      Uri.parse("$baseUrl/$url/"),
+      Uri.parse("$baseUrl/$url"),
       headers: {
         'Authorization': 'Bearer $accessToken',
       },
