@@ -2,16 +2,68 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../tools/formatters.dart';
 
-class ExpensesListView extends StatelessWidget {
+class ExpensesListView extends StatefulWidget {
   final List<dynamic> expenses;
   final List<dynamic> categories;
 
   const ExpensesListView({Key? key, required this.expenses, required this.categories}) : super(key: key);
 
+  @override
+  State<ExpensesListView> createState() => _ExpensesListViewState();
+}
+
+class _ExpensesListViewState extends State<ExpensesListView> {
+  final ScrollController _scrollController = ScrollController();
+  final Map<int, GlobalKey> _itemKeys = {};
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Tworzenie GlobalKey dla każdego elementu
+    for (int i = 0; i < widget.expenses.length; i++) {
+      _itemKeys[i] = GlobalKey();
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToToday();
+    });
+  }
+
+  void _scrollToToday() {
+    DateTime now = DateTime.now();
+    int? targetIndex;
+
+    for (int i = 0; i < widget.expenses.length; i++) {
+      DateTime expenseDate = DateTime.parse(widget.expenses[i]['date']);
+
+      if (expenseDate.year == now.year &&
+          expenseDate.month == now.month &&
+          expenseDate.day == now.day) {
+        targetIndex = i;
+        break;
+      } else if (expenseDate.isBefore(now)) {
+        targetIndex = i;
+        break;
+      }
+    }
+
+    if (targetIndex != null && _itemKeys.containsKey(targetIndex)) {
+      final context = _itemKeys[targetIndex]!.currentContext;
+      if (context != null) {
+        Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
+  }
+
   String getCategoryName(int categoryId) {
-    final category = categories.firstWhere(
-        (element) => element['id'] == categoryId,
-        orElse: () => {'name': '–'}
+    final category = widget.categories.firstWhere(
+          (element) => element['id'] == categoryId,
+      orElse: () => {'name': '–'},
     );
     return category['name'];
   }
@@ -27,39 +79,33 @@ class ExpensesListView extends StatelessWidget {
         icon: const Icon(Icons.add),
       ),
       body: ListView.builder(
-        itemCount: expenses.length,
+        controller: _scrollController,
+        itemCount: widget.expenses.length,
         padding: const EdgeInsets.only(bottom: 80),
         itemBuilder: (context, index) {
-          final expense = expenses[index];
+          final expense = widget.expenses[index];
           final String currentDate = expense['date'];
-          bool showDateHeader = index == 0 || expenses[index - 1]['date'] != currentDate;
-          bool isToday = DateTime.now().day == DateTime.parse(currentDate).day &&
-                         DateTime.now().month == DateTime.parse(currentDate).month &&
-                         DateTime.now().year == DateTime.parse(currentDate).year;
+          bool showDateHeader = index == 0 || widget.expenses[index - 1]['date'] != currentDate;
 
           return Column(
+            key: _itemKeys[index],
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (showDateHeader)
-                Container(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24.0, 24.0, 8.0, 8.0),
-                    //child: Center(
-                      child: Text(
-                        currentDate,
-                        style: const TextStyle(
-                          //fontWeight: FontWeight.bold,
-                          fontSize: 16.0,
-                          fontStyle: FontStyle.italic
-                        ),
-                      ),
-                    //),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24.0, 24.0, 8.0, 8.0),
+                  child: Text(
+                    currentDate,
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ),
               Slidable(
                 key: Key(expense['id'].toString()),
                 endActionPane: ActionPane(
-                  motion: ScrollMotion(),
+                  motion: const ScrollMotion(),
                   children: [
                     SlidableAction(
                       onPressed: (context) {
@@ -67,8 +113,8 @@ class ExpensesListView extends StatelessWidget {
                       },
                       foregroundColor: Colors.indigo,
                       backgroundColor: Theme.of(context).brightness == Brightness.light
-                        ? Colors.white
-                        : Colors.grey.shade900,
+                          ? Colors.white
+                          : Colors.grey.shade900,
                       icon: Icons.edit,
                       label: 'Edit',
                     ),
