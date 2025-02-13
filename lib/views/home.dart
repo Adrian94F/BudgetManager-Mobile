@@ -89,9 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserName();
-
     _data = _authService.get("get-data");
-
     _setScreens();
   }
 
@@ -115,111 +113,126 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           } else {
             var months = snapshot.data!['months'] as List<dynamic>;
-            var previousEnabled = false;
-            var nextEnabled = false;
-            if (months.isNotEmpty) {
-              if (_currentMonthId != null && _currentMonthId != months[0]['id']) {
-                nextEnabled = true;
-              }
-              if (_currentMonthId != months[months.length - 1]['id']) {
-                previousEnabled = true;
-              }
-            }
-
-            var currentMonthIdx = months.indexWhere((month) => month['id'] == _currentMonthId);
-            if (currentMonthIdx < 0) {
-              currentMonthIdx = 0;
-            }
 
             return Scaffold(
               body: _screens[_currentIndex],
               appBar: AppBar(
                 title: Text(
                   _screen_titles[_currentIndex],
-                  //"${_screen_titles[_currentIndex]}\n${months[currentMonthIdx]["dates"]}",
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 shadowColor: Theme.of(context).colorScheme.shadow,
-                actions: [
-                  if (_customAction != null) _customAction!,
-                  SizedBox(width: _customAction != null ? 10 : 0),
-                  if (_monthRelated) IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded),
-                      onPressed: previousEnabled
-                          ? () {
-                              if (currentMonthIdx < months.length - 1) {
-                                setState(() {
-                                  _currentMonthId = months[currentMonthIdx + 1]['id'];
-                                  _setScreens();
-                                });
-                              }
-                            }
-                          : null,
-                  ),
-                  if (_monthRelated) IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios_rounded),
-                      onPressed: nextEnabled
-                          ? () {
-                              if (currentMonthIdx > 0) {
-                                setState(() {
-                                  _currentMonthId = months[currentMonthIdx - 1]['id'];
-                                  _setScreens();
-                                });
-                              }
-                            }
-                          : null,
-                  ),
-                  if (_monthRelated) MenuAnchor(
-                    builder: (context, controller, child) {
-                      return IconButton(
-                        icon: const Icon(Icons.calendar_month_rounded),
-                        onPressed: () {
-                          if (controller.isOpen) {
-                            controller.close();
-                          } else {
-                            controller.open();
-                          }
-                        },
-                      );
-                    },
-                    menuChildren: [
-                      MenuItemButton(
-                          child: const Text("Details"),
-                          onPressed: () {
-                            // TODO
-                          }
-                      ),
-                      MenuItemButton(
-                        child: const Text("Select"),
-                        onPressed: () {
-                          // TODO
-                        }
-                      ),
-                      MenuItemButton(
-                        child: const Text("New month"),
-                        onPressed: () {
-                          // TODO
-                        }
-                      ),
-                    ],
-                  ),
-                ],
+                actions: _customActionsMenu() + _monthMenu(_monthRelated, months),
               ),
-              bottomNavigationBar: BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                currentIndex: _currentIndex,
-                onTap: (index) {
-                  setState(() {
-                    _monthRelated = index < _monthRelatedViews;
-                    _customAction = null;
-                    _currentIndex = index;
-                  });
-                },
-                items: _items,
-              ),
+              bottomNavigationBar: _bottomNavigation()
             );
           }
         }
     );
+  }
+
+  BottomNavigationBar _bottomNavigation() {
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        setState(() {
+          _monthRelated = index < _monthRelatedViews;
+          _customAction = null;
+          _currentIndex = index;
+        });
+      },
+      items: _items,
+    );
+  }
+
+  List<Widget> _customActionsMenu() {
+    return _customAction == null
+        ? []
+        : [
+            _customAction!,
+            const SizedBox(width: 10)
+          ];
+  }
+
+  void _selectMonth(int monthId) {
+    setState(() {
+      _currentMonthId = monthId;
+      _setScreens();
+    });
+  }
+
+  List<Widget> _monthMenu(bool isMonthRelated, List<dynamic> months) {
+    var currentMonthIdx = months.indexWhere((month) => month['id'] == _currentMonthId);
+    if (currentMonthIdx < 0) {
+      currentMonthIdx = 0;
+    }
+    var previousEnabled = false;
+    var nextEnabled = false;
+    if (months.isNotEmpty) {
+      if (_currentMonthId != null && _currentMonthId != months[0]['id']) {
+        nextEnabled = true;
+      }
+      if (_currentMonthId != months[months.length - 1]['id']) {
+        previousEnabled = true;
+      }
+    }
+
+    return !isMonthRelated ? [] : [
+      IconButton(
+        icon: const Icon(Icons.arrow_back_ios_rounded),
+        onPressed: previousEnabled
+            ? () {
+          if (currentMonthIdx < months.length - 1) {
+            _selectMonth(months[currentMonthIdx + 1]['id']);
+          }
+        }
+            : null,
+      ),
+      IconButton(
+        icon: const Icon(Icons.arrow_forward_ios_rounded),
+        onPressed: nextEnabled
+            ? () {
+          if (currentMonthIdx > 0) {
+            _selectMonth(months[currentMonthIdx - 1]['id']);
+          }
+        }
+            : null,
+      ),
+      MenuAnchor(
+        builder: (context, controller, child) {
+          return IconButton(
+            icon: const Icon(Icons.calendar_month_rounded),
+            onPressed: () {
+              if (controller.isOpen) {
+                controller.close();
+              } else {
+                controller.open();
+              }
+            },
+          );
+        },
+        menuChildren: [
+          MenuItemButton(
+              child: const Text("Details"),
+              onPressed: () {
+                // TODO
+              }
+          ),
+          MenuItemButton(
+              child: const Text("Select"),
+              onPressed: () {
+                // TODO
+              }
+          ),
+          MenuItemButton(
+              child: const Text("New month"),
+              onPressed: () {
+                // TODO
+              }
+          ),
+        ],
+      ),
+    ];
   }
 }
