@@ -100,7 +100,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
   Widget _buildSummaryList(List<dynamic> groups, BuildContext context) {
     return ListView.builder(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
       itemCount: groups.length,
       itemBuilder: (context, index) {
         final group = groups[index];

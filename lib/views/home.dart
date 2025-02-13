@@ -164,10 +164,76 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showMonthDetailsDialog(List<dynamic> months) {
     var currentMonthIdx = _getCurrentMonthIdx(months);
-    var startDate = months[currentMonthIdx]['start_date'];
-    var endDate = months[currentMonthIdx]['end_date'];
+    DateTime startDate = DateTime.parse(months[currentMonthIdx]['start_date']);
+    DateTime endDate = DateTime.parse(months[currentMonthIdx]['end_date']);
 
-    // TODO: show dialog with title "Month details", start and end dates, save and cancel button
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Month details"),
+              actionsPadding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Start date:"),
+                  TextButton(
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: startDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (pickedDate != null && pickedDate != startDate) {
+                        setState(() {
+                          startDate = pickedDate;
+                        });
+                      }
+                    },
+                    child: Text("${startDate.toLocal()}".split(' ')[0]),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text("End date:"),
+                  TextButton(
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: endDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (pickedDate != null && pickedDate != endDate) {
+                        setState(() {
+                          endDate = pickedDate;
+                        });
+                      }
+                    },
+                    child: Text("${endDate.toLocal()}".split(' ')[0]),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // TODO: save data
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Save"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showMonthSelectorDialog(List<dynamic> months) {
@@ -176,6 +242,8 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Select month"),
+          actionsPadding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+          contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 24.0),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
