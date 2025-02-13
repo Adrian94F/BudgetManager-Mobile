@@ -6,9 +6,10 @@ import 'expenses_list.dart';
 import 'expenses_table.dart';
 
 class ExpensesScreen extends StatefulWidget {
+  final int? currentMonth;
   final void Function(Widget?) setCustomAction;
 
-  const ExpensesScreen({Key? key, required this.setCustomAction}) : super(key: key);
+  const ExpensesScreen({Key? key,  required this.currentMonth, required this.setCustomAction}) : super(key: key);
 
   @override
   _ExpensesScreenState createState() => _ExpensesScreenState();
@@ -20,9 +21,23 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   final _list_table_switch = ValueNotifier<bool>(false);
 
   @override
+  void didUpdateWidget(covariant ExpensesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentMonth != widget.currentMonth) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    setState(() {
+      _data = _authService.get("get-expenses${widget.currentMonth == null ? '' : '/?month_id=${widget.currentMonth}'}");
+    });
+  }
+
+  @override
   void initState() {
     super.initState();
-    _data = _authService.get("get-expenses");
+    _fetchData();
     _list_table_switch.addListener(() {
       setState(() {});
     });

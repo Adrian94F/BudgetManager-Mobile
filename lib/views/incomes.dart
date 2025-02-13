@@ -5,6 +5,10 @@ import '../services/auth_service.dart';
 import '../tools/formatters.dart';
 
 class IncomesScreen extends StatefulWidget {
+  final int? currentMonth;
+
+  const IncomesScreen({Key? key, required this.currentMonth}) : super(key: key);
+
   @override
   _IncomesScreenState createState() => _IncomesScreenState();
 }
@@ -14,9 +18,23 @@ class _IncomesScreenState extends State<IncomesScreen> {
   late Future<Map<String, dynamic>> _data;
 
   @override
+  void didUpdateWidget(covariant IncomesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentMonth != widget.currentMonth) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    setState(() {
+      _data = _authService.get("get-incomes${widget.currentMonth == null ? '' : '/?month_id=${widget.currentMonth}'}");
+    });
+  }
+
+  @override
   void initState() {
     super.initState();
-    _data = _authService.get("get-incomes");
+    _fetchData();
   }
 
   @override
@@ -79,7 +97,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
                         ),
                         Text(
-                          income['date'],
+                          income['date'] ?? "",
                           style: const TextStyle(color: Colors.grey, fontSize: 16.0),
                         ),
                       ],
@@ -89,9 +107,11 @@ class _IncomesScreenState extends State<IncomesScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            income['comment'],
-                            style: const TextStyle(fontStyle: FontStyle.italic),
+                          Expanded(
+                            child: Text(
+                              income['comment'],
+                              style: const TextStyle(fontStyle: FontStyle.italic),
+                            ),
                           ),
                           if (income['is_salary'] == true)
                             Row(

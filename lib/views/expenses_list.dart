@@ -77,6 +77,7 @@ class ExpensesListView extends StatelessWidget {
                     Expanded(
                       child: Text(
                         expense['comment'],
+                        style: const TextStyle(fontStyle: FontStyle.italic),
                       ),
                     ),
                     if (expense['is_monthly'] == true)

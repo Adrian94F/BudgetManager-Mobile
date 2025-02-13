@@ -71,8 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _setScreens() async {
     _screens = [
       SummaryScreen(currentMonth: _currentMonthId),
-      ExpensesScreen(setCustomAction: _setCustomAction),
-      IncomesScreen(),
+      ExpensesScreen(currentMonth: _currentMonthId, setCustomAction: _setCustomAction),
+      IncomesScreen(currentMonth: _currentMonthId),
       SettingsScreen(setThemeMode: widget.setThemeMode),
     ];
     _screen_titles = [
