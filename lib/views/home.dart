@@ -27,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late List<String> _screen_titles;
   late Future<Map<String, dynamic>> _data;
   int? _currentMonthId;
+  String? _userName;
   Widget? _customAction;
 
   static const List<BottomNavigationBarItem> _items = [
@@ -63,7 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
     String? login = await _storage.read(key: "login");
     if (login != null) {
       setState(() {
-        _screen_titles[0] = "Hello, $login!";
+        _userName = login;
+        _screen_titles[0] = "Hello, $_userName!";
       });
     }
   }
@@ -76,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
       SettingsScreen(setThemeMode: widget.setThemeMode),
     ];
     _screen_titles = [
-      "Hello!",
+      "Hello, $_userName!",
       "Expenses",
       "Incomes",
       "Settings",
