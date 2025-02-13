@@ -63,61 +63,72 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Appearance",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              title: const Text("Theme"),
-              trailing: DropdownButton<String>(
-                value: _currentTheme,
-                items: const [
-                  DropdownMenuItem(
-                    value: "light",
-                    child: Text("Light"),
-                  ),
-                  DropdownMenuItem(
-                    value: "dark",
-                    child: Text("Dark"),
-                  ),
-                  DropdownMenuItem(
-                    value: "system",
-                    child: Text("System"),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _currentTheme = value;
-                    });
-                    _saveTheme(value);
-                  }
-                },
-              ),
-            ),
-            const SizedBox(height: 32),
-            const Text(
-              "Connection",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _serverController,
-              decoration: const InputDecoration(
-                labelText: "Server URL",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _saveServerUrl(context),
-              child: const Text("Save Server URL"),
-            ),
-          ],
+          children:
+            _appearenceSettings() + _connectionSettings(),
         ),
       ),
     );
+  }
+
+  List<Widget> _appearenceSettings() {
+    return [
+      const Text(
+        "Appearance",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 16),
+      ListTile(
+        title: const Text("Theme"),
+        trailing: DropdownButton<String>(
+          value: _currentTheme,
+          items: const [
+            DropdownMenuItem(
+              value: "light",
+              child: Text("Light"),
+            ),
+            DropdownMenuItem(
+              value: "dark",
+              child: Text("Dark"),
+            ),
+            DropdownMenuItem(
+              value: "system",
+              child: Text("System"),
+            ),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _currentTheme = value;
+              });
+              _saveTheme(value);
+            }
+          },
+        ),
+      ),
+      const SizedBox(height: 32),
+    ];
+  }
+
+  List<Widget> _connectionSettings() {
+    return [
+      const Text(
+        "Connection",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _serverController,
+        decoration: const InputDecoration(
+          labelText: "Server URL",
+          border: OutlineInputBorder(),
+        ),
+      ),
+      const SizedBox(height: 16),
+      ElevatedButton(
+        onPressed: () => _saveServerUrl(context),
+        child: const Text("Save Server URL"),
+      ),
+      const SizedBox(height: 32),
+    ];
   }
 }
