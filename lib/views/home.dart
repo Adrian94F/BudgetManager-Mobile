@@ -162,11 +162,91 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  List<Widget> _monthMenu(bool isMonthRelated, List<dynamic> months) {
+  void _showMonthDetailsDialog(List<dynamic> months) {
+    var currentMonthIdx = _getCurrentMonthIdx(months);
+    var startDate = months[currentMonthIdx]['start_date'];
+    var endDate = months[currentMonthIdx]['end_date'];
+
+    // TODO: show dialog with title "Month details", start and end dates, save and cancel button
+  }
+
+  void _showMonthSelectorDialog(List<dynamic> months) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Select month"),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: months.length,
+              itemBuilder: (context, index) {
+                final month = months[index];
+                final currentYear = month['start_date'].substring(0, 4);
+                final bool showYearHeader = index == 0 ||
+                    months[index - 1]['start_date'].substring(0, 4) != currentYear;
+                final bool isSelected = (_currentMonthId == null && index == 0) || month['id'] == _currentMonthId;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (showYearHeader)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          currentYear,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ListTile(
+                      title: Text(
+                        "${month['start_date']} – ${month['end_date']}",
+                        style: TextStyle(
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      titleAlignment: ListTileTitleAlignment.center,
+                      onTap: () {
+                        setState(() {
+                          _currentMonthId = month['id'];
+                          _setScreens();
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  int _getCurrentMonthIdx(List<dynamic> months) {
     var currentMonthIdx = months.indexWhere((month) => month['id'] == _currentMonthId);
     if (currentMonthIdx < 0) {
       currentMonthIdx = 0;
     }
+    return currentMonthIdx;
+  }
+
+
+  List<Widget> _monthMenu(bool isMonthRelated, List<dynamic> months) {
+    var currentMonthIdx = _getCurrentMonthIdx(months);
     var previousEnabled = false;
     var nextEnabled = false;
     if (months.isNotEmpty) {
@@ -215,15 +295,11 @@ class _HomeScreenState extends State<HomeScreen> {
         menuChildren: [
           MenuItemButton(
               child: const Text("Details"),
-              onPressed: () {
-                // TODO
-              }
+              onPressed: () => _showMonthDetailsDialog(months)
           ),
           MenuItemButton(
               child: const Text("Select"),
-              onPressed: () {
-                // TODO
-              }
+              onPressed: () => _showMonthSelectorDialog(months)
           ),
           MenuItemButton(
               child: const Text("New month"),
