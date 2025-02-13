@@ -20,13 +20,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
   final _storage = const FlutterSecureStorage();
 
-  int _currentIndex = 0;
-  bool _monthRelated = true;
+  var _currentIndex = 0;
+  var _monthRelated = true;
   final _monthRelatedViews = 3;
   late List<Widget> _screens;
   late List<String> _screen_titles;
   late Future<Map<String, dynamic>> _data;
-  int? _currentMonth;
+  int? _currentMonthId;
   Widget? _customAction;
 
   static const List<BottomNavigationBarItem> _items = [
@@ -59,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  /// Pobiera login z SecureStorage i aktualizuje tytuł ekranu
   Future<void> _loadUserName() async {
     String? login = await _storage.read(key: "login");
     if (login != null) {
@@ -69,20 +68,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadUserName();
-
-    _data = _authService.get("get-data");
-
+  void _setScreens() async {
     _screens = [
-      SummaryScreen(),
+      SummaryScreen(currentMonth: _currentMonthId),
       ExpensesScreen(setCustomAction: _setCustomAction),
       IncomesScreen(),
       SettingsScreen(setThemeMode: widget.setThemeMode),
     ];
-
     _screen_titles = [
       "Hello!",
       "Expenses",
@@ -92,29 +84,47 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+
+    _data = _authService.get("get-data");
+
+    _setScreens();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
         future: _data,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Scaffold(
+                body: Center(
+                    child: CircularProgressIndicator()
+                )
+            );
           } else if (snapshot.hasError) {
             _logout(context);
-            return const Center(child: CircularProgressIndicator());
+            return const Scaffold(
+                body: Center(
+                    child: CircularProgressIndicator()
+                )
+            );
           } else {
             var months = snapshot.data!['months'] as List<dynamic>;
             var previousEnabled = false;
             var nextEnabled = false;
             if (months.isNotEmpty) {
-              if (_currentMonth != null && _currentMonth != months[0]['id']) {
+              if (_currentMonthId != null && _currentMonthId != months[0]['id']) {
                 nextEnabled = true;
               }
-              if (_currentMonth != months[months.length - 1]['id']) {
+              if (_currentMonthId != months[months.length - 1]['id']) {
                 previousEnabled = true;
               }
             }
 
-            var currentMonthIdx = months.indexWhere((month) => month['id'] == _currentMonth);
+            var currentMonthIdx = months.indexWhere((month) => month['id'] == _currentMonthId);
             if (currentMonthIdx < 0) {
               currentMonthIdx = 0;
             }
@@ -137,7 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? () {
                               if (currentMonthIdx < months.length - 1) {
                                 setState(() {
-                                  _currentMonth = months[currentMonthIdx + 1]['id'];
+                                  _currentMonthId = months[currentMonthIdx + 1]['id'];
+                                  _setScreens();
                                 });
                               }
                             }
@@ -149,7 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? () {
                               if (currentMonthIdx > 0) {
                                 setState(() {
-                                  _currentMonth = months[currentMonthIdx - 1]['id'];
+                                  _currentMonthId = months[currentMonthIdx - 1]['id'];
+                                  _setScreens();
                                 });
                               }
                             }

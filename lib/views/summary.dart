@@ -3,9 +3,9 @@ import '../services/auth_service.dart';
 import '../tools/formatters.dart';
 
 class SummaryScreen extends StatefulWidget {
-  // final int? currentMonth;
-  //
-  // const SummaryScreen({Key? key, this.currentMonth}) : super(key: key);
+  final int? currentMonth;
+
+  const SummaryScreen({Key? key, required this.currentMonth}) : super(key: key);
 
   @override
   _SummaryScreenState createState() => _SummaryScreenState();
@@ -18,24 +18,22 @@ class _SummaryScreenState extends State<SummaryScreen> {
   @override
   void initState() {
     super.initState();
-    _data = _authService.get("get-summary");
-    //_data = _authService.get("get-summary${widget.currentMonth != null ? '?month_id=${widget.currentMonth}' : ''}");
-    //_fetchData();
+    _fetchData();
   }
 
-  // @override
-  // void didUpdateWidget(covariant SummaryScreen oldWidget) {
-  //   super.didUpdateWidget(oldWidget);
-  //   if (widget.currentMonth != oldWidget.currentMonth) {
-  //     _fetchData();
-  //   }
-  // }
-  //
-  // void _fetchData() {
-  //   setState(() {
-  //     _data = _authService.get("get-summary${widget.currentMonth != null ? '?month_id=${widget.currentMonth}' : ''}");
-  //   });
-  // }
+  @override
+  void didUpdateWidget(covariant SummaryScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentMonth != widget.currentMonth) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    setState(() {
+      _data = _authService.get("get-summary${widget.currentMonth == null ? '' : '/?month_id=${widget.currentMonth}'}");
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +54,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
         return Column(
           children: [
             _buildChartPlaceholder(),
-            Expanded(
-              child: _buildSummaryList(groups, context),
-            ),
+            Expanded(child: _buildSummaryList(groups, context)),
           ],
         );
       },
