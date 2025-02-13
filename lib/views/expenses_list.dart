@@ -140,9 +140,28 @@ class _ExpensesListViewState extends State<ExpensesListView> {
                         Formatters.currencyFormatter.format(expense['value']),
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
                       ),
-                      Text(
-                        expense['date'],
-                        style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).brightness == Brightness.light
+                                ? Colors.indigo.shade50
+                                : Colors.grey.shade900,
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: Text(
+                            getCategoryName(expense['category']),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                                color: Theme.of(context).brightness == Brightness.light
+                                    ? Colors.grey.shade900
+                                    : Colors.grey.shade100),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -158,7 +177,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
                       ),
                       if (expense['is_monthly'] == true)
                         Container(
-                          margin: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+                          margin: const EdgeInsetsDirectional.symmetric(vertical: 4),
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           decoration: BoxDecoration(
                             color: Theme.of(context).brightness == Brightness.light
@@ -168,34 +187,12 @@ class _ExpensesListViewState extends State<ExpensesListView> {
                           ),
                           child: Icon(
                             Icons.repeat,
-                            size: 20,
+                            size: 16,
                             color: Theme.of(context).brightness == Brightness.light
                                 ? Colors.grey.shade900
                                 : Colors.grey.shade100,
                           ),
                         ),
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.5),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.light
-                                ? Colors.indigo.shade50
-                                : Colors.grey.shade900,
-                            borderRadius: BorderRadius.circular(4.0),
-                          ),
-                          child: Text(
-                            getCategoryName(expense['category']),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.light
-                                    ? Colors.grey.shade900
-                                    : Colors.grey.shade100),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
