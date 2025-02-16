@@ -7,8 +7,9 @@ class ExpensesListView extends StatefulWidget {
   final List<dynamic> expenses;
   final List<dynamic> categories;
   final bool? showFab;
+  final bool? showDates;
 
-  const ExpensesListView({Key? key, required this.expenses, required this.categories, this.showFab = true}) : super(key: key);
+  const ExpensesListView({Key? key, required this.expenses, required this.categories, this.showFab = true, this.showDates = true}) : super(key: key);
 
   @override
   State<ExpensesListView> createState() => _ExpensesListViewState();
@@ -230,7 +231,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
         padding: const EdgeInsets.only(bottom: 80),
         itemBuilder: (context, index) {
           final expense = widget.expenses[index];
-          bool showDateHeader = index == 0 || widget.expenses[index - 1]['date'] != expense['date'];
+          bool showDateHeader = (index == 0 || widget.expenses[index - 1]['date'] != expense['date']) && widget.showDates == true;
 
           return Column(
             key: _itemKeys[index],
