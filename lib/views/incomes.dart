@@ -37,6 +37,71 @@ class _IncomesScreenState extends State<IncomesScreen> {
     _fetchData();
   }
 
+  Widget _incomeListItemTitle(dynamic income) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: MediaQuery.of(context).size.width * 0.25,
+            maxWidth: MediaQuery.of(context).size.width * 0.25,
+          ),
+          child: Text(
+            Formatters.currencyFormatter.format(income['value']),
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+          ),
+        ),
+
+        Text(
+          income['date'] ?? "",
+          style: const TextStyle(color: Colors.grey, fontSize: 16.0),
+        ),
+      ],
+    );
+  }
+
+  Widget? _incomeListItemSubtitle(dynamic income) {
+    if ((income['comment'] == null || income['comment'].isEmpty) && income['is_salary'] == false) {
+      return null;
+    }
+    return Container(
+        margin: const EdgeInsets.only(top: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Text(
+                income['comment'],
+                style: const TextStyle(fontStyle: FontStyle.italic),
+                textAlign: TextAlign.end,
+              ),
+            ),
+            if (income['is_salary'] == true)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 4.0, left: 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.grey.shade100
+                          : Colors.grey.shade800,
+                      borderRadius: BorderRadius.circular(4.0),
+                    ),
+                    child: const Text(
+                      "Salary",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              )
+          ],
+        )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
@@ -88,54 +153,9 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     ],
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          Formatters.currencyFormatter.format(income['value']),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
-                        ),
-                        Text(
-                          income['date'] ?? "",
-                          style: const TextStyle(color: Colors.grey, fontSize: 16.0),
-                        ),
-                      ],
-                    ),
-                    subtitle:  Container(
-                      margin: const EdgeInsets.only(top: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              income['comment'],
-                              style: const TextStyle(fontStyle: FontStyle.italic),
-                            ),
-                          ),
-                          if (income['is_salary'] == true)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Container(
-                                  margin: const EdgeInsets.only(top: 4.0),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).brightness == Brightness.light
-                                        ? Colors.grey.shade100
-                                        : Colors.grey.shade800,
-                                    borderRadius: BorderRadius.circular(4.0),
-                                  ),
-                                  child: const Text(
-                                    "Salary",
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            )
-                        ],
-                      )
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
+                    title: _incomeListItemTitle(income),
+                    subtitle: _incomeListItemSubtitle(income)
                   ),
                 );
               },
