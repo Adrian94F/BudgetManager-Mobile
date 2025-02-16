@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_table_view/material_table_view.dart';
 
+import 'widgets/expenses_table_item_button.dart';
+
 class ExpensesTableView extends StatefulWidget {
   final List<dynamic> expenses;
   final List<dynamic> categories;
@@ -20,6 +22,7 @@ class ExpensesTableView extends StatefulWidget {
 
 class _ExpensesTableViewState extends State<ExpensesTableView> {
   final TableViewController _tableViewController = TableViewController();
+  final _columnWidth = 45.0;
 
   @override
   void initState() {
@@ -36,12 +39,10 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       return;
     }
 
-    int screenWidth = MediaQuery.of(context).size.width.toInt();
-    int columnCount = ((screenWidth - 150) / 45).floor() - 2;
-    int todayColumnIndex = today.difference(beginDate).inDays - columnCount;
-    double columnWidth = 45.0;
-
-    double scrollOffset = todayColumnIndex * columnWidth;
+    final screenWidth = MediaQuery.of(context).size.width.toInt();
+    final columnsOffset = ((screenWidth - 150) / 45 * 0.6).floor();
+    final todayColumnIndex = today.difference(beginDate).inDays - columnsOffset;
+    final scrollOffset = todayColumnIndex * _columnWidth;
 
     _tableViewController.horizontalScrollController.animateTo(
       scrollOffset,
@@ -94,7 +95,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       const TableColumn(width: 150.0, freezePriority: 100),
     ];
     for (var date = beginDate; date.isBefore(endDate); date = date.add(const Duration(days: 1))) {
-      columns.add(const TableColumn(width: 45));
+      columns.add(TableColumn(width: _columnWidth));
     }
 
     return Column(
@@ -114,85 +115,111 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
               ),
             ),
             headerBuilder: (context, contentBuilder) {
-              return Material(
-                type: MaterialType.transparency,
-                child: contentBuilder(
-                  context,
-                      (context, column) {
-                    if (column == 0) {
-                      return Container(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                        child: const Text("Categories", style: TextStyle(fontStyle: FontStyle.italic)),
-                      );
-                    } else {
-                      DateTime date = beginDate.add(Duration(days: column - 1));
-                      DateFormat format = DateFormat('d.MM');
-                      return Center(
-                        child: Text(
-                          format.format(date),
-                          style: const TextStyle(fontStyle: FontStyle.italic),
+              return contentBuilder(
+                context,
+                (context, column) {
+                  if (column == 0) {
+                    return Container(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                      child: const Text(
+                        "Categories",
+                        style: TextStyle(fontStyle: FontStyle.italic)
+                      ),
+                    );
+                  } else {
+                    DateTime date = beginDate.add(Duration(days: column - 1));
+                    DateFormat format = DateFormat('d.MM');
+                    return ExpensesTableItemButton(
+                      onPressed: () {
+                        // TODO
+                        print('${DateFormat('d.MM').format(date)} sum clicked');
+                      },
+                      child: Text(
+                        format.format(date),
+                        style: const TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.normal
                         ),
-                      );
-                    }
-                  },
-                ),
+                      ),
+                    );
+                  }
+                },
               );
             },
             rowBuilder: (context, row, contentBuilder) {
               var category = widget.categories[row];
-              return Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  onTap: () => print('${category['name']} row clicked'),
-                  child: contentBuilder(
-                    context,
-                        (context, column) {
-                      if (column == 0) {
-                        return Container(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                          child: Text(category['name'], overflow: TextOverflow.ellipsis),
-                        );
-                      } else {
-                        DateTime date = beginDate.add(Duration(days: column - 1));
-                        double sum = categoryDateSums[category['id']]?[date] ?? 0.0;
+              return contentBuilder(
+                context,
+                (context, column) {
+                  if (column == 0) {
+                    return ExpensesTableItemButton(
+                      onPressed: () {
+                        // TODO
+                        print('${category['name']} sum clicked');
+                      },
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                        child: Text(
+                          category['name'],
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.normal
+                          ),
+                        ),
+                      ),
+                    );
+                  } else {
+                    DateTime date = beginDate.add(Duration(days: column - 1));
+                    double sum = categoryDateSums[category['id']]?[date] ?? 0.0;
 
-                        return Container(
-                          color: getBackgroundColor(context, date),
-                          alignment: Alignment.center,
-                          child: Text(sum != 0.0 ? sum.toStringAsFixed(0) : ""),
-                        );
-                      }
-                    },
-                  ),
-                ),
+                    return Container(
+                      color: getBackgroundColor(context, date),
+                      alignment: Alignment.center,
+                      child: ExpensesTableItemButton(
+                        onPressed: () => {
+                          // TODO
+                          print('${category['name']} on ${DateFormat('d.MM').format(date)} clicked'),
+                        },
+                        child: Text(sum != 0.0 ? sum.toStringAsFixed(0) : ""),
+                      )
+                    );
+                  }
+                },
               );
             },
             footerBuilder: (context, contentBuilder) {
-              return Material(
-                type: MaterialType.transparency,
-                child: contentBuilder(
-                  context,
-                      (context, column) {
-                    if (column == 0) {
-                      return Container(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                        child: const Text("Sums", style: TextStyle(fontStyle: FontStyle.italic)),
-                      );
-                    } else {
-                      DateTime date = beginDate.add(Duration(days: column - 1));
-                      double sum = dateSums[date] ?? 0.0;
-                      return Center(
-                        child: Text(
-                          sum.toStringAsFixed(0),
-                          style: const TextStyle(fontStyle: FontStyle.italic),
+              return contentBuilder(
+                context,
+                (context, column) {
+                  if (column == 0) {
+                    return Container(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                      child: const Text(
+                        "Sums",
+                        style: TextStyle(fontStyle: FontStyle.italic)
+                      ),
+                    );
+                  } else {
+                    DateTime date = beginDate.add(Duration(days: column - 1));
+                    double sum = dateSums[date] ?? 0.0;
+                    return ExpensesTableItemButton(
+                      onPressed: () {
+                        // TODO
+                        print('${DateFormat('d.MM').format(date)} sum clicked');
+                      },
+                      child: Text(
+                        sum.toStringAsFixed(0),
+                        style: const TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.normal
                         ),
-                      );
-                    }
-                  },
-                ),
+                      ),
+                    );
+                  }
+                },
               );
             },
           ),
