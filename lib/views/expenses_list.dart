@@ -6,8 +6,9 @@ import '../tools/formatters.dart';
 class ExpensesListView extends StatefulWidget {
   final List<dynamic> expenses;
   final List<dynamic> categories;
+  final bool? showFab;
 
-  const ExpensesListView({Key? key, required this.expenses, required this.categories}) : super(key: key);
+  const ExpensesListView({Key? key, required this.expenses, required this.categories, this.showFab = true}) : super(key: key);
 
   @override
   State<ExpensesListView> createState() => _ExpensesListViewState();
@@ -214,13 +215,15 @@ class _ExpensesListViewState extends State<ExpensesListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // TODO
-        },
-        label: const Text('Add'),
-        icon: const Icon(Icons.add),
-      ),
+      floatingActionButton: widget.showFab == true
+        ? FloatingActionButton.extended(
+            onPressed: () {
+              // TODO
+            },
+            label: const Text('Add'),
+            icon: const Icon(Icons.add),
+          )
+        : null,
       body: ListView.builder(
         controller: _scrollController,
         itemCount: widget.expenses.length,
