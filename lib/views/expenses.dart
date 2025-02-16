@@ -87,13 +87,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           final month = data['month'] as Map<String, dynamic>;
 
           return Scaffold(
-            // appBar: AppBar(
-            //   shadowColor: Theme.of(context).colorScheme.shadow,
-            //   centerTitle: true,
-            //   // actions: [
-            //   //   const SizedBox(width: 10),
-            //   // ],
-            // ),
             body: _list_table_switch.value
                 ? ExpensesTableView(expenses: expenses, categories: categories, month: month)
                 : ExpensesListView(expenses: expenses, categories: categories),

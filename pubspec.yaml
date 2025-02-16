@@ -42,6 +42,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_advanced_switch: ^3.1.0
   data_table_2: ^2.5.18
+  material_table_view: ^5.1.0
 
 dev_dependencies:
   flutter_test:
