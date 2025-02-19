@@ -6,38 +6,21 @@ import 'expenses_list.dart';
 import 'expenses_table.dart';
 
 class ExpensesScreen extends StatefulWidget {
-  final int? currentMonth;
+  final Map<String, dynamic> data;
   final void Function(Widget?) setCustomAction;
 
-  const ExpensesScreen({Key? key,  required this.currentMonth, required this.setCustomAction}) : super(key: key);
+  const ExpensesScreen({Key? key,  required this.data, required this.setCustomAction}) : super(key: key);
 
   @override
   _ExpensesScreenState createState() => _ExpensesScreenState();
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
-  final _authService = AuthService();
-  late Future<Map<String, dynamic>> _data;
   final _list_table_switch = ValueNotifier<bool>(false);
-
-  @override
-  void didUpdateWidget(covariant ExpensesScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentMonth != widget.currentMonth) {
-      _fetchData();
-    }
-  }
-
-  void _fetchData() {
-    setState(() {
-      _data = _authService.get("get-expenses${widget.currentMonth == null ? '' : '/?month_id=${widget.currentMonth}'}");
-    });
-  }
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
     _list_table_switch.addListener(() {
       setState(() {});
     });
@@ -73,28 +56,14 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _data,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        } else if (snapshot.hasData) {
-          final data = snapshot.data!;
-          final expenses = data['expenses'] as List<dynamic>;
-          final categories = data['categories'] as List<dynamic>;
-          final month = data['month'] as Map<String, dynamic>;
+    final expenses = widget.data['expenses'] as List<dynamic>;
+    final categories = widget.data['categories'] as List<dynamic>;
+    final month = widget.data['month'] as Map<String, dynamic>;
 
-          return Scaffold(
-            body: _list_table_switch.value
-                ? ExpensesTableView(expenses: expenses, categories: categories, month: month)
-                : ExpensesListView(expenses: expenses, categories: categories),
-          );
-        } else {
-          return const Center(child: Text("Error: no data!"));
-        }
-      },
+    return Scaffold(
+      body: _list_table_switch.value
+          ? ExpensesTableView(expenses: expenses, categories: categories, month: month)
+          : ExpensesListView(expenses: expenses, categories: categories),
     );
   }
 }

@@ -24,7 +24,12 @@ class _HomeScreenState extends State<HomeScreen> {
   var _monthRelated = true;
   final _monthRelatedViews = 3;
   late List<Widget> _screens;
-  late List<String> _screen_titles;
+  final List<String> _screen_titles = [
+    "Hello!",
+    "Expenses",
+    "Incomes",
+    "Settings",
+  ];
   late Future<Map<String, dynamic>> _data;
   int? _currentMonthId;
   String? _userName;
@@ -70,18 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _setScreens() async {
+  void _setScreens(dynamic data) {
     _screens = [
       SummaryScreen(currentMonth: _currentMonthId),
-      ExpensesScreen(currentMonth: _currentMonthId, setCustomAction: _setCustomAction),
+      ExpensesScreen(data: data, setCustomAction: _setCustomAction),
       IncomesScreen(currentMonth: _currentMonthId),
       SettingsScreen(setThemeMode: widget.setThemeMode),
-    ];
-    _screen_titles = [
-      "Hello, $_userName!",
-      "Expenses",
-      "Incomes",
-      "Settings",
     ];
   }
 
@@ -94,7 +93,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadUserName();
     _fetchData();
-    _setScreens();
   }
 
   @override
@@ -116,7 +114,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
             );
           } else {
-            var months = snapshot.data!['months'] as List<dynamic>;
+            var data = snapshot.data;
+            var months = data!['months'] as List<dynamic>;
+            _setScreens(data);
 
             return Scaffold(
               body: _screens[_currentIndex],
@@ -163,7 +163,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _currentMonthId = monthId;
       _fetchData();
-      _setScreens();
     });
   }
 
@@ -289,7 +288,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         setState(() {
                           _currentMonthId = month['id'];
                           _fetchData();
-                          _setScreens();
                         });
                         Navigator.pop(context);
                       },
