@@ -127,8 +127,19 @@ class _HomeScreenState extends State<HomeScreen> {
             var months = data!['months'] as List<dynamic>;
             _setScreens(data);
 
+            var message = data['message'];
+            var body = message == null
+              ? _screens[_currentIndex]
+              : Center(
+                child: Text(
+                  message,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                )
+              );
+
+
             return Scaffold(
-              body: _screens[_currentIndex],
+              body: body,
               appBar: AppBar(
                 title: Text(
                   _screen_titles[_currentIndex],
