@@ -85,11 +85,15 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
+  void _fetchData() {
+    _data = _authService.get("get-month${_currentMonthId == null ? '' : '/?month_id=$_currentMonthId'}");
+  }
+
   @override
   void initState() {
     super.initState();
     _loadUserName();
-    _data = _authService.get("get-data");
+    _fetchData();
     _setScreens();
   }
 
@@ -158,6 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _selectMonth(int monthId) {
     setState(() {
       _currentMonthId = monthId;
+      _fetchData();
       _setScreens();
     });
   }
@@ -283,6 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () {
                         setState(() {
                           _currentMonthId = month['id'];
+                          _fetchData();
                           _setScreens();
                         });
                         Navigator.pop(context);
