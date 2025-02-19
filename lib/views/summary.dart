@@ -31,7 +31,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
       if (income['is_salary'] == true) {
         salarySum += value;
       } else {
-        otherIncomesSum +=  value;
+        otherIncomesSum += value;
       }
     }
     var incomesSum = salarySum + otherIncomesSum;
@@ -60,7 +60,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
         if (expDate.isBefore(today)) {
           dailyExpensesBeforeTodaySum += value;
         }
-        if (expDate.year == today.year && expDate.month == today.month && expDate.day == today.day) {
+        if (expDate.year == today.year &&
+            expDate.month == today.month &&
+            expDate.day == today.day) {
           todayExpensesSum += value;
         }
       }
@@ -103,13 +105,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
       });
     }
 
-    return Column(
-      children: [
-        _buildMonthHeader(monthDates),
-        _buildChartPlaceholder(),
-        Expanded(child: _buildSummaryList(groups, context)),
-      ],
-    );
+    return _buildSummary(groups, context, monthDates);
   }
 
   Widget _buildChartPlaceholder() {
@@ -148,18 +144,19 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 
-  Widget _buildSummaryList(List<dynamic> groups, BuildContext context) {
+  Widget _buildSummary(List<dynamic> groups, BuildContext context, String header) {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
       itemCount: groups.length,
       itemBuilder: (context, index) {
         final group = groups[index];
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (index == 0) _buildMonthHeader(header),
+            if (index == 0) _buildChartPlaceholder(),
             _buildGroupTitle(group['name'], context),
-            ..._buildGroupFields(group['fields']),
-            if (index < groups.length - 1) const SizedBox(height: 8),
+            ..._buildGroupFields(group['fields'])
           ],
         );
       },
@@ -168,7 +165,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
   Widget _buildGroupTitle(String name, BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 2.0),
       child: Text(
         name,
         style: TextStyle(
@@ -185,7 +182,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
   List<Widget> _buildGroupFields(List<dynamic> fields) {
     return fields.map((field) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 24.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
