@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 
-import '../services/auth_service.dart';
 import 'expenses_list.dart';
 import 'expenses_table.dart';
 
