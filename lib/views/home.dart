@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _screens = [
       SummaryScreen(currentMonth: _currentMonthId),
       ExpensesScreen(data: data, setCustomAction: _setCustomAction),
-      IncomesScreen(currentMonth: _currentMonthId),
+      IncomesScreen(data: data),
       SettingsScreen(setThemeMode: widget.setThemeMode),
     ];
   }
@@ -101,10 +101,19 @@ class _HomeScreenState extends State<HomeScreen> {
         future: _data,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-                body: Center(
+            return Scaffold(
+                body: const Center(
                     child: CircularProgressIndicator()
-                )
+                ),
+                appBar: AppBar(
+                  title: Text(
+                    _screen_titles[_currentIndex],
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  shadowColor: Theme.of(context).colorScheme.shadow,
+                  actions: _customActionsMenu() + _monthMenu(_monthRelated, []),
+                ),
+                bottomNavigationBar: _bottomNavigation()
             );
           } else if (snapshot.hasError) {
             _logout(context);
