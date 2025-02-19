@@ -77,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _setScreens(dynamic data) {
     _screens = [
-      SummaryScreen(currentMonth: _currentMonthId),
+      SummaryScreen(data: data),
       ExpensesScreen(data: data, setCustomAction: _setCustomAction),
       IncomesScreen(data: data),
       SettingsScreen(setThemeMode: widget.setThemeMode),

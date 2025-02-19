@@ -1,64 +1,114 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:intl/intl.dart';
 import '../tools/formatters.dart';
 
 class SummaryScreen extends StatefulWidget {
-  final int? currentMonth;
+  final Map<String, dynamic> data;
 
-  const SummaryScreen({Key? key, required this.currentMonth}) : super(key: key);
+  const SummaryScreen({Key? key, required this.data}) : super(key: key);
 
   @override
   _SummaryScreenState createState() => _SummaryScreenState();
 }
 
 class _SummaryScreenState extends State<SummaryScreen> {
-  final _authService = AuthService();
   late Future<Map<String, dynamic>> _data;
 
   @override
-  void initState() {
-    super.initState();
-    _fetchData();
-  }
-
-  @override
-  void didUpdateWidget(covariant SummaryScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentMonth != widget.currentMonth) {
-      _fetchData();
-    }
-  }
-
-  void _fetchData() {
-    setState(() {
-      _data = _authService.get("get-summary${widget.currentMonth == null ? '' : '/?month_id=${widget.currentMonth}'}");
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _data,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        } else if (!snapshot.hasData) {
-          return const Center(child: Text("Error: no data!"));
+    var startDate = DateTime.parse(widget.data['month']['start_date']);
+    var endDate = DateTime.parse(widget.data['month']['end_date']);
+    var monthDates = startDate.year == endDate.year
+        ? "${DateFormat("d.MM").format(startDate)}-${DateFormat("d.MM.yyyy").format(endDate)}"
+        : "${DateFormat("d.MM.yyyy").format(startDate)}-${DateFormat("d.MM.yyyy").format(endDate)}";
+    var groups = [];
+
+    var incomes = widget.data['incomes'] as List<dynamic>;
+    var salarySum = 0.0;
+    var otherIncomesSum = 0.0;
+    for (var income in incomes) {
+      var value = income['value'];
+      if (income['is_salary'] == true) {
+        salarySum += value;
+      } else {
+        otherIncomesSum +=  value;
+      }
+    }
+    var incomesSum = salarySum + otherIncomesSum;
+    groups.add({
+      "name": "Incomes",
+      "fields": [
+        {"name": "Salary", "value": salarySum, "type": "currency"},
+        {"name": "Other income", "value": otherIncomesSum, "type": "currency"},
+        {"name": "Total", "value": incomesSum, "type": "currency"},
+      ],
+    });
+
+    var expenses = widget.data['expenses'] as List<dynamic>;
+    var monthlyExpensesSum = 0.0;
+    var regularExpensesSum = 0.0;
+    var dailyExpensesBeforeTodaySum = 0.0;
+    var todayExpensesSum = 0.0;
+    var today = DateTime.parse("${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}");
+    for (var expense in expenses) {
+      var value = expense['value'];
+      if (expense['is_monthly'] == true) {
+        monthlyExpensesSum += value;
+      } else {
+        regularExpensesSum += value;
+        var expDate = DateTime.parse(expense['date']);
+        if (expDate.isBefore(today)) {
+          dailyExpensesBeforeTodaySum += value;
         }
+        if (expDate.year == today.year && expDate.month == today.month && expDate.day == today.day) {
+          todayExpensesSum += value;
+        }
+      }
+    }
+    var expensesSum = monthlyExpensesSum + regularExpensesSum;
+    groups.add({
+      "name": "Expenses",
+      "fields": [
+        {"name": "Daily expenses", "value": regularExpensesSum, "type": "currency"},
+        {"name": "Recurring expenses", "value": monthlyExpensesSum, "type": "currency"},
+        {"name": "Total", "value": expensesSum, "type": "currency"}
+      ]
+    });
 
-        final data = snapshot.data!;
-        final groups = data['groups'] as List<dynamic>;
+    groups.add({
+      "name": "Balance",
+      "fields": [
+        {"name": "Incomes", "value": incomesSum, "type": "currency"},
+        {"name": "Expenses", "value": expensesSum, "type": "currency"},
+        {"name": "Balance", "value": incomesSum - expensesSum, "type": "currency"}
+      ]
+    });
 
-        return Column(
-          children: [
-            _buildMonthHeader(data['dates']),
-            _buildChartPlaceholder(),
-            Expanded(child: _buildSummaryList(groups, context)),
-          ],
-        );
-      },
+    if (DateTime.now().isAfter(startDate) && DateTime.now().isBefore(endDate.add(const Duration(days: 1)))) {  // handle now in the last day of month
+      var daysLeft = endDate.difference(DateTime.now()).inDays + 2;  // till the end of day
+
+      var balanceBeforeToday = incomesSum - monthlyExpensesSum - dailyExpensesBeforeTodaySum;
+      var maxDailyExpenses = balanceBeforeToday / daysLeft;
+
+      groups.add({
+        "name": "Month",
+        "fields": [
+          {"name": "Days left", "value": daysLeft},
+          balanceBeforeToday > 0
+            ? {"name": "Max. daily expense", "value": maxDailyExpenses, "type": "currency"}
+            : {"name": "Max. daily expense", "value": "—", "type": "text"},
+          {"name": "Spent today", "value": todayExpensesSum, "type": "currency"},
+          {"name": "Spent today (percent)", "value": (todayExpensesSum / maxDailyExpenses * 100).round(), "type": "percent"}
+        ]
+      });
+    }
+
+    return Column(
+      children: [
+        _buildMonthHeader(monthDates),
+        _buildChartPlaceholder(),
+        Expanded(child: _buildSummaryList(groups, context)),
+      ],
     );
   }
 
@@ -167,6 +217,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
       case 'percent':
         return Text(
           "${Formatters.integerFormatter.format(field['value'])}%",
+          style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+        );
+      case 'text':
+        return Text(
+          field['value'],
           style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
         );
       default:
