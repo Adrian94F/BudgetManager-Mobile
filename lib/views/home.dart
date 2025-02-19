@@ -139,7 +139,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
             return Scaffold(
-              body: body,
+              body: RefreshIndicator(
+                onRefresh: _handleRefresh,
+                child: body is Center
+                    ? ListView(
+                        children: [body],
+                      )
+                    : body,
+              ),
               appBar: AppBar(
                 title: Text(
                   _screen_titles[_currentIndex],
@@ -148,11 +155,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 shadowColor: Theme.of(context).colorScheme.shadow,
                 actions: _customActionsMenu() + _monthMenu(_monthRelated, months),
               ),
-              bottomNavigationBar: _bottomNavigation()
+              bottomNavigationBar: _bottomNavigation(),
             );
           }
         }
     );
+  }
+
+  Future<void> _handleRefresh() async {
+    setState(() {
+      _fetchData();
+    });
   }
 
   BottomNavigationBar _bottomNavigation() {
