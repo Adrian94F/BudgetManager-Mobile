@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   var _monthRelated = true;
   final _monthRelatedViews = 3;
   late List<Widget> _screens;
-  final List<String> _screen_titles = [
+  final List<String> _screenTitles = [
     "Hello!",
     "Expenses",
     "Incomes",
@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (login != null) {
       setState(() {
         _userName = login;
-        _screen_titles[0] = "Hello, $_userName!";
+        _screenTitles[0] = "Hello, $_userName!";
       });
     }
   }
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 appBar: AppBar(
                   title: Text(
-                    _screen_titles[_currentIndex],
+                    _screenTitles[_currentIndex],
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   shadowColor: Theme.of(context).colorScheme.shadow,
@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               appBar: AppBar(
                 title: Text(
-                  _screen_titles[_currentIndex],
+                  _screenTitles[_currentIndex],
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 shadowColor: Theme.of(context).colorScheme.shadow,
