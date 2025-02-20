@@ -4,7 +4,6 @@ import 'package:material_table_view/material_table_view.dart';
 
 import 'expenses_list.dart';
 import 'widgets/expenses_table_item_button.dart';
-import 'expenses_list.dart';
 
 class ExpensesTableView extends StatefulWidget {
   final List<dynamic> expenses;

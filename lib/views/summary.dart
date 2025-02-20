@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../tools/formatters.dart';
+import 'widgets/month_burndown_chart.dart';
 
 class SummaryScreen extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -12,7 +13,6 @@ class SummaryScreen extends StatefulWidget {
 }
 
 class _SummaryScreenState extends State<SummaryScreen> {
-  late Future<Map<String, dynamic>> _data;
 
   @override
   Widget build(BuildContext context) {
@@ -108,28 +108,25 @@ class _SummaryScreenState extends State<SummaryScreen> {
     return _buildSummary(groups, context, monthDates);
   }
 
-  Widget _buildChartPlaceholder() {
+  Widget _buildChartPlaceholder(Map<String, dynamic> data) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(64.0),
-      color: Theme.of(context).brightness == Brightness.light
-          ? Colors.grey.shade200
-          : Colors.grey.shade900,
-      child: Center(
-        child: Text(
-          "chart",
-          style: TextStyle(
-              fontSize: 24.0,
-              color: Theme.of(context).scaffoldBackgroundColor,
-              fontWeight: FontWeight.bold),
-        ),
+      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+      child: AspectRatio(
+        aspectRatio: 2,
+        child: SimpleBurndownChart(
+          incomes: data['incomes'],
+          expenses: data['expenses'],
+          startDate: DateTime.parse(data['month']['start_date']),
+          endDate: DateTime.parse(data['month']['end_date'])
+        )
       ),
     );
   }
 
   Widget _buildMonthHeader(String dates) {
     return Container(
-        padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0, vertical: 4.0),
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 16.0, vertical: 4.0),
         alignment: Alignment.centerLeft,
         child: Text(
           dates,
@@ -154,7 +151,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (index == 0) _buildMonthHeader(header),
-            if (index == 0) _buildChartPlaceholder(),
+            if (index == 0) _buildChartPlaceholder(widget.data),
             _buildGroupTitle(group['name'], context),
             ..._buildGroupFields(group['fields'])
           ],
