@@ -4,6 +4,10 @@
     "summary": "Start",
     "incomes": "Przychody",
     "expenses": "Wydatki",
+    "expensesList": "Lista wydatków",
+    "expensesTable": "Tabela wydatków",
+    "expensesListShort": "Lista",
+    "expensesTableShort": "Tabela",
     "settings": "Ustawienia",
     "monthDetails": "Szczegóły miesiąca",
     "startDate": "Początek",
@@ -37,5 +41,6 @@
     "systemTheme": "Systemowy",
     "connection": "Połączenie",
     "serverUrl": "Adres URL serwera",
-    "saveServerUrl": "Zapisz adres URL serwera"
+    "saveServerUrl": "Zapisz adres URL serwera",
+    "filteredExpenses": "Wybrane wydatki"
 }

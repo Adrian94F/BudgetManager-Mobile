@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'expenses_list.dart';
 
@@ -21,7 +22,7 @@ class FilteredExpensesList extends StatelessWidget {
         categories.firstWhere((category) => category['id'] == filter.category)['name']
       ];
     }
-    var title = "Filtered expenses";
+    var title = AppLocalizations.of(context)!.filteredExpenses;
     var subtitle = titleParts.join(' — ');
 
     return Scaffold(
@@ -59,7 +60,7 @@ class FilteredExpensesList extends StatelessWidget {
         onPressed: () {
           // TODO
         },
-        label: const Text('Add'),
+        label: Text(AppLocalizations.of(context)!.add),
         icon: const Icon(Icons.add),
       ),
     );
