@@ -7,8 +7,9 @@ import 'expenses_table.dart';
 class ExpensesScreen extends StatefulWidget {
   final Map<String, dynamic> data;
   final void Function(Widget?) setCustomAction;
+  final Future<void> Function() refreshParent;
 
-  const ExpensesScreen({Key? key,  required this.data, required this.setCustomAction}) : super(key: key);
+  const ExpensesScreen({Key? key,  required this.data, required this.setCustomAction, required this.refreshParent}) : super(key: key);
 
   @override
   _ExpensesScreenState createState() => _ExpensesScreenState();
@@ -17,6 +18,10 @@ class ExpensesScreen extends StatefulWidget {
 class _ExpensesScreenState extends State<ExpensesScreen> {
   final _list_table_switch = ValueNotifier<bool>(false);
 
+  Future<void> _handleRefresh() async {
+    widget.refreshParent();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -24,6 +29,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       setState(() {});
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
+
       widget.setCustomAction(
           AdvancedSwitch(
             controller: _list_table_switch,
@@ -37,13 +43,13 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 ? Colors.indigo.shade50
                 : Colors.grey.shade800,
             activeChild: Icon(
-              Icons.grid_view_rounded,
+              Icons.table_rows_rounded,
               color: Theme.of(context).brightness == Brightness.light
                   ? Colors.black
                   : Colors.white,
             ),
             inactiveChild: Icon(
-              Icons.table_rows_rounded,
+              Icons.grid_view_rounded,
               color: Theme.of(context).brightness == Brightness.light
                   ? Colors.black
                   : Colors.white,
@@ -61,8 +67,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
     return Scaffold(
       body: _list_table_switch.value
-          ? ExpensesTableView(expenses: expenses, categories: categories, month: month)
-          : ExpensesListView(expenses: expenses, categories: categories),
+        ? ExpensesListView(expenses: expenses, categories: categories)
+        : ExpensesTableView(expenses: expenses, categories: categories, month: month, refreshParent: _handleRefresh),
     );
   }
 }

@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_table_view/material_table_view.dart';
 
-import 'expenses_list.dart';
+import 'filtered_expenses_list.dart';
 import 'widgets/expenses_table_item_button.dart';
 
 class ExpensesTableView extends StatefulWidget {
   final List<dynamic> expenses;
   final List<dynamic> categories;
   final Map<String, dynamic> month;
+  final Future<void> Function() refreshParent;
 
   const ExpensesTableView({
     Key? key,
     required this.expenses,
     required this.categories,
     required this.month,
+    required this.refreshParent,
   }) : super(key: key);
 
   @override
@@ -25,10 +27,6 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   final TableViewController _tableViewController = TableViewController();
   final _columnWidth = 45.0;
 
-  bool _showFilteredList = false;
-  DateTime? _selectedDate;
-  int? _selectedCategory;
-  List<dynamic> _filteredExpenses = [];
   double? _savedVerticalScroll;
   double? _savedHorizontalScroll;
 
@@ -61,16 +59,30 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
 
   void _showFilteredExpenses({int? categoryId, DateTime? date}) {
     setState(() {
-      _filteredExpenses = widget.expenses.where((expense) {
+      var filteredExpenses = widget.expenses.where((expense) {
         final matchesCategory = categoryId == null || expense['category'] == categoryId;
         final matchesDate = date == null || expense['date'] == DateFormat('yyyy-MM-dd').format(date);
         return matchesCategory && matchesDate;
       }).toList();
-      _selectedDate = date;
-      _selectedCategory = categoryId;
-      _showFilteredList = true;
+
       _savedVerticalScroll = _tableViewController.verticalScrollController.offset;
       _savedHorizontalScroll = _tableViewController.horizontalScrollController.offset;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => FilteredExpensesList(
+                expenses: filteredExpenses,
+                categories: widget.categories,
+                filter: ExpensesFilter(
+                    date: date,
+                    category: categoryId
+                )
+            )
+        ),
+      ).then((value)=>setState((){
+        widget.refreshParent();
+      }));
     });
   }
 
@@ -109,52 +121,6 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   Widget build(BuildContext context) {
     if (widget.expenses.isEmpty || widget.categories.isEmpty) {
       return const Center(child: Text("No data available"));
-    }
-
-    if (_showFilteredList) {
-      var titleParts = [];
-      if (_selectedDate != null) {
-        titleParts += [DateFormat('d.MM.yyyy').format(_selectedDate!)];
-      }
-      if (_selectedCategory != null) {
-        titleParts += [widget.categories.firstWhere((category) => category['id'] == _selectedCategory)['name']];
-      }
-      var title = titleParts.join(' — ');
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(
-            title,
-            maxLines: 3,
-            style: const TextStyle(
-                fontSize: 20,
-                overflow: TextOverflow.ellipsis
-            ),
-          ),
-          shadowColor: Theme.of(context).colorScheme.shadow,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              setState(() {
-                _showFilteredList = false;
-                _scrollToXY(x: _savedHorizontalScroll, y: _savedVerticalScroll);
-              });
-            },
-          ),
-        ),
-        body: ExpensesListView(
-            expenses: _filteredExpenses,
-            categories: widget.categories,
-            showFab: false,
-            showDates: _selectedDate == null
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            // TODO
-          },
-          label: const Text('Add'),
-          icon: const Icon(Icons.add),
-        ),
-      );
     }
 
     final beginDate = DateTime.parse(widget.month['start_date']);

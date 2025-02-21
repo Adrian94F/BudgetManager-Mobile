@@ -78,7 +78,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _setScreens(dynamic data) {
     _screens = [
       SummaryScreen(data: data),
-      ExpensesScreen(data: data, setCustomAction: _setCustomAction),
+      ExpensesScreen(
+          data: data,
+          setCustomAction: _setCustomAction,
+          refreshParent: _handleRefresh),
       IncomesScreen(data: data),
       SettingsScreen(setThemeMode: widget.setThemeMode),
     ];
@@ -140,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             return Scaffold(
               body: RefreshIndicator(
-                onRefresh: _handleRefresh,
+                onRefresh: () => _handleRefresh(),
                 child: body is Center
                     ? ListView(
                         children: [body],
