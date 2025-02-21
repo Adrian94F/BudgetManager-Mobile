@@ -8,29 +8,41 @@ class SimpleBurndownChart extends StatelessWidget {
   final DateTime startDate;
   final DateTime endDate;
   final bool animate = true;
-  final simple = false;
 
   SimpleBurndownChart({required this.incomes, required this.expenses, required this.startDate, required this.endDate});
 
   @override
   Widget build(BuildContext context) {
-    var seriesList = _createSeries(incomes, expenses, startDate, endDate);
-    var primaryMeasureAxis = simple
-      ? const NumericAxisSpec(
+    var seriesList = _createSeries(context, incomes, expenses, startDate, endDate);
+    var primaryMeasureAxis = NumericAxisSpec(
+      tickProviderSpec: const BasicNumericTickProviderSpec(desiredTickCount: 4),
+      tickFormatterSpec: BasicNumericTickFormatterSpec(
+        (num? number) {
+          return number != 0
+            ? "${(number! / 1000.0).toStringAsFixed(0)}k"
+            : "0";
+        }),
+        renderSpec: GridlineRendererSpec(
+          labelStyle: TextStyleSpec(
+            color: Theme.of(context).brightness == Brightness.light
+              ? MaterialPalette.gray.shade900
+              : MaterialPalette.gray.shade300,
+          ),
+          lineStyle: LineStyleSpec(
+            color: Theme.of(context).brightness == Brightness.light
+                ? MaterialPalette.gray.shade200
+                : MaterialPalette.gray.shade900,
+          )
+        )
+    );
+    var domainAxis = const OrdinalAxisSpec(
           showAxisLine: false,
           renderSpec: NoneRenderSpec(),
-        )
-      : NumericAxisSpec(
-          tickProviderSpec: const BasicNumericTickProviderSpec(desiredTickCount: 5),
-          tickFormatterSpec: BasicNumericTickFormatterSpec(
-            (num? number) {
-              return "${(number! / 1000.0).toStringAsFixed(0)}k";
-            })
         );
-    var domainAxis = const OrdinalAxisSpec(
-          showAxisLine: true,
-          renderSpec: NoneRenderSpec(),
-        );
+
+    var widgetWidth = MediaQuery.of(context).size.width;
+    var daysNumber = endDate.difference(startDate).inDays + 2;
+    var segmentWidth = widgetWidth / daysNumber;
 
     return OrdinalComboChart(
       seriesList,
@@ -41,11 +53,14 @@ class SimpleBurndownChart extends StatelessWidget {
       customSeriesRenderers: [
         new BarRendererConfig(
             customRendererId: 'customBar')
+      ],
+      behaviors: [
+        RangeAnnotation(_getSegments(context, startDate, endDate, segmentWidth)),
       ]);
   }
 
 
-  static List<Series<BudgetBurndown, String>> _createSeries(List<dynamic> incomes, List<dynamic> expenses, DateTime startDate, DateTime endDate) {
+  static List<Series<BudgetBurndown, String>> _createSeries(BuildContext context, List<dynamic> incomes, List<dynamic> expenses, DateTime startDate, DateTime endDate) {
     Map<DateTime, double> dailyExpensesSums = {};
     Map<DateTime, double> monthlyExpensesSums = {};
     double monthlyExpensesSum = 0.0;
@@ -111,7 +126,9 @@ class SimpleBurndownChart extends StatelessWidget {
     return [
       Series<BudgetBurndown, String>(
         id: 'Daily',
-        colorFn: (_, __) => MaterialPalette.indigo.makeShades(5)[3],
+        colorFn: (_, __) => Theme.of(context).brightness == Brightness.light
+          ? MaterialPalette.indigo.makeShades(5)[3]
+          : MaterialPalette.indigo.makeShades(5)[3].darker.darker,
         domainFn: (BudgetBurndown burndown, _) => burndown.day,
         measureFn: (BudgetBurndown burndown, _) => burndown.sum,
         data: dailyExpensesData,
@@ -119,7 +136,9 @@ class SimpleBurndownChart extends StatelessWidget {
         ..setAttribute(rendererIdKey, 'customBar'),
       Series<BudgetBurndown, String>(
           id: 'Monthly',
-          colorFn: (_, __) => MaterialPalette.indigo.makeShades(5)[4],
+          colorFn: (_, __) => Theme.of(context).brightness == Brightness.light
+              ? MaterialPalette.indigo.makeShades(5)[4]
+              : MaterialPalette.indigo.makeShades(5)[4].darker.darker.darker.darker,
           domainFn: (BudgetBurndown burndown, _) => burndown.day,
           measureFn: (BudgetBurndown burndown, _) => burndown.sum,
           data: monthlyExpensesData
@@ -143,6 +162,42 @@ class SimpleBurndownChart extends StatelessWidget {
       ),
     ];
   }
+
+  static List<LineAnnotationSegment<Object>> _getSegments(BuildContext context, DateTime startDate, DateTime endDate, double segmentWidth)
+  {
+    var list = <LineAnnotationSegment<Object>>[];
+
+    var date = startDate;
+    while (date.difference(endDate).inDays <= 0) {
+      if (date.weekday == 6 || date.weekday == 7) {
+        var dayText = DateFormat("d.MM").format(date);
+        var weekendSegment = LineAnnotationSegment(
+            dayText,
+            RangeAnnotationAxisType.domain,
+            strokeWidthPx: segmentWidth,
+            color: Theme.of(context).brightness == Brightness.light
+                ? MaterialPalette.gray.shade100
+                : MaterialPalette.gray.shade900.darker
+        );
+        list.add(weekendSegment);
+      }
+      date = date.add(const Duration(days: 1));
+    }
+
+    var todayText = DateFormat("d.MM").format(DateTime.now());
+    var todaySegment = LineAnnotationSegment(
+        todayText,
+        RangeAnnotationAxisType.domain,
+        strokeWidthPx: segmentWidth,
+        color: Theme.of(context).brightness == Brightness.light
+            ? MaterialPalette.indigo.makeShades(10)[9]
+            : MaterialPalette.indigo.shadeDefault.darker.darker.darker.darker.darker
+    );
+    list.add(todaySegment);
+
+    return list;
+  }
+
 }
 
 class BudgetBurndown {
