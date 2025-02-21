@@ -22,5 +22,8 @@
     "daysLeft": "Dni do końca",
     "maxDailyExpense": "Maksymalny dzienny wydatek",
     "spentToday": "Wydatki dzisiaj",
-    "spentTodayPercent": "Wydatki dzisiaj (%)"
+    "spentTodayPercent": "Wydatki dzisiaj (%)",
+    "edit": "Edytuj",
+    "remove": "Usuń",
+    "add": "Dodaj"
 }

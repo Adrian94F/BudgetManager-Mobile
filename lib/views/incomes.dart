@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../tools/formatters.dart';
 
@@ -67,8 +68,8 @@ class _IncomesScreenState extends State<IncomesScreen> {
                           : Colors.grey.shade800,
                       borderRadius: BorderRadius.circular(4.0),
                     ),
-                    child: const Text(
-                      "Salary",
+                    child: Text(
+                      AppLocalizations.of(context)!.salary,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -88,7 +89,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
         onPressed: () {
           // TODO
         },
-        label: const Text('Add'),
+        label: Text(AppLocalizations.of(context)!.add),
         icon: const Icon(Icons.add),
       ),
       body: ListView.builder(
@@ -107,16 +108,22 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     // TODO
                   },
                   foregroundColor: Colors.indigo,
+                  backgroundColor: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : Colors.grey.shade900,
                   icon: Icons.edit,
-                  label: 'Edit',
+                  label: AppLocalizations.of(context)!.edit,
                 ),
                 SlidableAction(
                   onPressed: (context) {
                     // TODO
                   },
                   foregroundColor: Colors.red,
+                  backgroundColor: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : Colors.grey.shade900,
                   icon: Icons.delete,
-                  label: 'Remove',
+                  label: AppLocalizations.of(context)!.remove,
                 ),
               ],
             ),

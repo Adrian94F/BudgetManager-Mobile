@@ -34,5 +34,8 @@
   "daysLeft": "Days left",
   "maxDailyExpense": "Max daily expense",
   "spentToday": "Spent today",
-  "spentTodayPercent": "Spent today %"
+  "spentTodayPercent": "Spent today %",
+  "edit": "Edit",
+  "remove": "Remove",
+  "add": "Add"
 }

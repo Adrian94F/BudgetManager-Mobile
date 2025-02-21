@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import '../tools/formatters.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ExpensesListView extends StatefulWidget {
   final List<dynamic> expenses;
@@ -190,7 +191,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
                 ? Colors.white
                 : Colors.grey.shade900,
             icon: Icons.edit,
-            label: 'Edit',
+            label: AppLocalizations.of(context)!.edit,
           ),
           SlidableAction(
             onPressed: (context) {
@@ -201,7 +202,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
                 ? Colors.white
                 : Colors.grey.shade900,
             icon: Icons.delete,
-            label: 'Remove',
+            label: AppLocalizations.of(context)!.remove,
           ),
         ],
       ),
@@ -221,7 +222,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
             onPressed: () {
               // TODO
             },
-            label: const Text('Add'),
+            label: Text(AppLocalizations.of(context)!.add),
             icon: const Icon(Icons.add),
           )
         : null,
