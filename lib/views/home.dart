@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (login != null) {
       setState(() {
         _screenTitles[0] = AppLocalizations.of(context)!.summaryTitle(login);
-        _screenTitles[1] = AppLocalizations.of(context)!.expenses;
+        _screenTitles[1] = AppLocalizations.of(context)!.expensesList;
         _screenTitles[2] = AppLocalizations.of(context)!.expensesTable;
         _screenTitles[3] = AppLocalizations.of(context)!.incomes;
         _screenTitles[4] = AppLocalizations.of(context)!.settings;
@@ -174,6 +174,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _currentIndex = index;
         });
       },
+      // showSelectedLabels: false,
+      // showUnselectedLabels: false,
       items: [
         BottomNavigationBarItem(
           icon: const Icon(Icons.home_rounded),
@@ -181,11 +183,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         BottomNavigationBarItem(
           icon: const Icon(Icons.table_rows_rounded),
-          label: AppLocalizations.of(context)!.expenses,
+          label: AppLocalizations.of(context)!.expensesListShort,
         ),
         BottomNavigationBarItem(
           icon: const Icon(Icons.grid_view_rounded),
-          label: AppLocalizations.of(context)!.expensesTable,
+          label: AppLocalizations.of(context)!.expensesTableShort,
         ),
         BottomNavigationBarItem(
           icon: const Icon(Icons.download_rounded),
