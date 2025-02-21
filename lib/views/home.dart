@@ -54,8 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _screenTitles[0] = AppLocalizations.of(context)!.summaryTitle(login);
         _screenTitles[1] = AppLocalizations.of(context)!.expenses;
-        _screenTitles[2] = AppLocalizations.of(context)!.incomes;
-        _screenTitles[3] = AppLocalizations.of(context)!.settings;
+        _screenTitles[2] = AppLocalizations.of(context)!.expensesTable;
+        _screenTitles[3] = AppLocalizations.of(context)!.incomes;
+        _screenTitles[4] = AppLocalizations.of(context)!.settings;
       });
     }
   }
