@@ -3,7 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../services/auth_service.dart';
-import 'expenses.dart';
+import 'expenses_list.dart';
+import 'expenses_table.dart';
 import 'incomes.dart';
 import 'settings.dart';
 import 'summary.dart';
@@ -23,28 +24,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   var _currentIndex = 0;
   var _monthRelated = true;
-  final _monthRelatedViews = 3;
+  final _monthRelatedViews = 4;
   late List<Widget> _screens;
   final List<String> _screenTitles = [
     "Hello!",
-    "Expenses",
+    "Expenses list",
+    "Expenses table",
     "Incomes",
     "Settings",
   ];
   late Future<Map<String, dynamic>> _data;
   int? _currentMonthId;
-  Widget? _customAction;
+  // Widget? _customAction;
 
   Future<void> _logout(BuildContext context) async {
     await _authService.logout();
     Navigator.pushReplacementNamed(context, '/login');
   }
 
-  void _setCustomAction(Widget? action) {
-    setState(() {
-      _customAction = action;
-    });
-  }
+  // void _setCustomAction(Widget? action) {
+  //   setState(() {
+  //     _customAction = action;
+  //   });
+  // }
 
   Future<void> _loadUserName() async {
     String? login = await _storage.read(key: "login");
@@ -59,12 +61,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _setScreens(dynamic data) {
+    final expenses = data['expenses'] as List<dynamic>;
+    final categories = data['categories'] as List<dynamic>;
+    final month = data['month'] as Map<String, dynamic>;
+
     _screens = [
       SummaryScreen(data: data),
-      ExpensesScreen(
-          data: data,
-          setCustomAction: _setCustomAction,
-          refreshParent: _handleRefresh),
+      ExpensesListView(expenses: expenses, categories: categories),
+      ExpensesTableView(expenses: expenses, categories: categories, month: month, refreshParent: _handleRefresh),
+      // ExpensesScreen(
+      //     data: data,
+      //     setCustomAction: _setCustomAction,
+      //     refreshParent: _handleRefresh),
       IncomesScreen(data: data),
       SettingsScreen(setThemeMode: widget.setThemeMode),
     ];
@@ -97,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   shadowColor: Theme.of(context).colorScheme.shadow,
-                  actions: _customActionsMenu() + _monthMenu(context, _monthRelated, []),
+                  actions: /* _customActionsMenu() + */ _monthMenu(context, _monthRelated, []),
                 ),
                 bottomNavigationBar: _bottomNavigation()
             );
@@ -139,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 shadowColor: Theme.of(context).colorScheme.shadow,
-                actions: _customActionsMenu() + _monthMenu(context, _monthRelated, months),
+                actions: /* _customActionsMenu() + */ _monthMenu(context, _monthRelated, months),
               ),
               bottomNavigationBar: _bottomNavigation(),
             );
@@ -161,39 +169,43 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: (index) {
         setState(() {
           _monthRelated = index < _monthRelatedViews;
-          _customAction = null;
+          // _customAction = null;
           _currentIndex = index;
         });
       },
       items: [
         BottomNavigationBarItem(
-          icon: const Icon(Icons.home_filled),
+          icon: const Icon(Icons.home_rounded),
           label: AppLocalizations.of(context)!.summary,
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.shopping_cart),
+          icon: const Icon(Icons.table_rows_rounded),
           label: AppLocalizations.of(context)!.expenses,
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.attach_money),
+          icon: const Icon(Icons.grid_view_rounded),
+          label: 'Table',
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.download_rounded),
           label: AppLocalizations.of(context)!.incomes,
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.settings),
+          icon: const Icon(Icons.settings_rounded),
           label: AppLocalizations.of(context)!.settings,
         ),
       ],
     );
   }
 
-  List<Widget> _customActionsMenu() {
-    return _customAction == null
-        ? []
-        : [
-            _customAction!,
-            const SizedBox(width: 10)
-          ];
-  }
+  // List<Widget> _customActionsMenu() {
+  //   return _customAction == null
+  //       ? []
+  //       : [
+  //           _customAction!,
+  //           const SizedBox(width: 10)
+  //         ];
+  // }
 
   void _selectMonth(int monthId) {
     setState(() {
