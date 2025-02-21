@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         BottomNavigationBarItem(
           icon: const Icon(Icons.grid_view_rounded),
-          label: 'Table',
+          label: AppLocalizations.of(context)!.expensesTable,
         ),
         BottomNavigationBarItem(
           icon: const Icon(Icons.download_rounded),

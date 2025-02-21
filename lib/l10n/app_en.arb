@@ -16,6 +16,7 @@
   "summary": "Summary",
   "incomes": "Incomes",
   "expenses": "Expenses",
+  "expensesTable": "Table",
   "settings": "Settings",
   "monthDetails": "Month details",
   "startDate": "Start date",
