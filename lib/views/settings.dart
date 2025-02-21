@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:budget_manager/services/auth_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'app_settings.dart';
 
@@ -25,7 +26,7 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text("App settings"),
+              title: Text(AppLocalizations.of(context)!.appSettings),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () {
                 Navigator.push(
@@ -36,7 +37,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.logout),
-              title: const Text("Log out"),
+              title: Text(AppLocalizations.of(context)!.logOut),
               onTap: () => _logout(context),
             ),
           ],

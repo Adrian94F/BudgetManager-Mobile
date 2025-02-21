@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AppSettingsScreen extends StatefulWidget {
   final Future<void> Function(String) setThemeMode;
@@ -42,12 +43,12 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     if (newUrl.isNotEmpty) {
       await _storage.write(key: 'server_url', value: newUrl);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Server URL updated. Please log in again.")),
+        SnackBar(content: Text(AppLocalizations.of(context)!.urlUpdated)),
       );
       Navigator.pushReplacementNamed(context, '/login');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Server URL cannot be empty.")),
+        SnackBar(content: Text(AppLocalizations.of(context)!.urlCannotBeEmpty)),
       );
     }
   }
@@ -56,7 +57,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("App Settings"),
+        title: Text(AppLocalizations.of(context)!.appSettings),
         centerTitle: true,
       ),
       body: Padding(
@@ -72,27 +73,27 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
 
   List<Widget> _appearenceSettings() {
     return [
-      const Text(
-        "Appearance",
+      Text(
+        AppLocalizations.of(context)!.appereance,
         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 16),
       ListTile(
-        title: const Text("Theme"),
+        title: Text(AppLocalizations.of(context)!.theme),
         trailing: DropdownButton<String>(
           value: _currentTheme,
-          items: const [
+          items: [
             DropdownMenuItem(
               value: "light",
-              child: Text("Light"),
+              child: Text(AppLocalizations.of(context)!.lightTheme),
             ),
             DropdownMenuItem(
               value: "dark",
-              child: Text("Dark"),
+              child: Text(AppLocalizations.of(context)!.darkTheme),
             ),
             DropdownMenuItem(
               value: "system",
-              child: Text("System"),
+              child: Text(AppLocalizations.of(context)!.systemTheme),
             ),
           ],
           onChanged: (value) {
@@ -111,22 +112,22 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
 
   List<Widget> _connectionSettings() {
     return [
-      const Text(
-        "Connection",
+      Text(
+        AppLocalizations.of(context)!.connection,
         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 16),
       TextFormField(
         controller: _serverController,
-        decoration: const InputDecoration(
-          labelText: "Server URL",
+        decoration: InputDecoration(
+          labelText: AppLocalizations.of(context)!.serverUrl,
           border: OutlineInputBorder(),
         ),
       ),
       const SizedBox(height: 16),
       ElevatedButton(
         onPressed: () => _saveServerUrl(context),
-        child: const Text("Save Server URL"),
+        child: Text(AppLocalizations.of(context)!.saveServerUrl),
       ),
       const SizedBox(height: 32),
     ];
