@@ -50,5 +50,6 @@
   "systemTheme": "System",
   "connection": "Connection",
   "serverUrl": "Server URL",
-  "saveServerUrl": "Save server URL"
+  "saveServerUrl": "Save server URL",
+  "filteredExpenses": "Filtered expenses"
 }
