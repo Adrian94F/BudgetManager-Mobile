@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../tools/formatters.dart';
 import 'widgets/month_burndown_chart.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SummaryScreen extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -36,11 +37,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
     }
     var incomesSum = salarySum + otherIncomesSum;
     groups.add({
-      "name": "Incomes",
+      "name": AppLocalizations.of(context)!.incomes,
       "fields": [
-        {"name": "Salary", "value": salarySum, "type": "currency"},
-        {"name": "Other income", "value": otherIncomesSum, "type": "currency"},
-        {"name": "Total", "value": incomesSum, "type": "currency"},
+        {"name": AppLocalizations.of(context)!.salary, "value": salarySum, "type": "currency"},
+        {"name": AppLocalizations.of(context)!.otherIncome, "value": otherIncomesSum, "type": "currency"},
+        {"name": AppLocalizations.of(context)!.total, "value": incomesSum, "type": "currency"},
       ],
     });
 
@@ -69,20 +70,20 @@ class _SummaryScreenState extends State<SummaryScreen> {
     }
     var expensesSum = monthlyExpensesSum + regularExpensesSum;
     groups.add({
-      "name": "Expenses",
+      "name": AppLocalizations.of(context)!.expenses,
       "fields": [
-        {"name": "Daily expenses", "value": regularExpensesSum, "type": "currency"},
-        {"name": "Recurring expenses", "value": monthlyExpensesSum, "type": "currency"},
-        {"name": "Total", "value": expensesSum, "type": "currency"}
+        {"name": AppLocalizations.of(context)!.dailyExpenses, "value": regularExpensesSum, "type": "currency"},
+        {"name": AppLocalizations.of(context)!.recurrentExpenses, "value": monthlyExpensesSum, "type": "currency"},
+        {"name": AppLocalizations.of(context)!.total, "value": expensesSum, "type": "currency"}
       ]
     });
 
     groups.add({
-      "name": "Balance",
+      "name": AppLocalizations.of(context)!.balance,
       "fields": [
-        {"name": "Incomes", "value": incomesSum, "type": "currency"},
-        {"name": "Expenses", "value": expensesSum, "type": "currency"},
-        {"name": "Balance", "value": incomesSum - expensesSum, "type": "currency"}
+        {"name": AppLocalizations.of(context)!.incomes, "value": incomesSum, "type": "currency"},
+        {"name": AppLocalizations.of(context)!.expenses, "value": expensesSum, "type": "currency"},
+        {"name": AppLocalizations.of(context)!.balance, "value": incomesSum - expensesSum, "type": "currency"}
       ]
     });
 
@@ -93,14 +94,14 @@ class _SummaryScreenState extends State<SummaryScreen> {
       var maxDailyExpenses = balanceBeforeToday / daysLeft;
 
       groups.add({
-        "name": "Month",
+        "name": AppLocalizations.of(context)!.currentMonth,
         "fields": [
-          {"name": "Days left", "value": daysLeft},
+          {"name": AppLocalizations.of(context)!.daysLeft, "value": daysLeft},
           balanceBeforeToday > 0
-            ? {"name": "Max. daily expense", "value": maxDailyExpenses, "type": "currency"}
-            : {"name": "Max. daily expense", "value": "—", "type": "text"},
-          {"name": "Spent today", "value": todayExpensesSum, "type": "currency"},
-          {"name": "Spent today (percent)", "value": (todayExpensesSum / maxDailyExpenses * 100).round(), "type": "percent"}
+            ? {"name": AppLocalizations.of(context)!.maxDailyExpense, "value": maxDailyExpenses, "type": "currency"}
+            : {"name": AppLocalizations.of(context)!.maxDailyExpense, "value": "—", "type": "text"},
+          {"name": AppLocalizations.of(context)!.spentToday, "value": todayExpensesSum, "type": "currency"},
+          {"name": AppLocalizations.of(context)!.spentTodayPercent, "value": (todayExpensesSum / maxDailyExpenses * 100).round(), "type": "percent"}
         ]
       });
     }

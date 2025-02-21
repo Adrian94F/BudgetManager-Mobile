@@ -23,5 +23,16 @@
   "cancel": "Cancel",
   "save": "Save",
   "selectMonth": "Select month",
-  "newMonth": "New month"
+  "newMonth": "New month",
+  "balance": "Balance",
+  "currentMonth": "Current month",
+  "salary": "Salary",
+  "otherIncome": "Other income",
+  "total": "Total",
+  "dailyExpenses": "Daily expenses",
+  "recurrentExpenses": "Recurrent expenses",
+  "daysLeft": "Days left",
+  "maxDailyExpense": "Max daily expense",
+  "spentToday": "Spent today",
+  "spentTodayPercent": "Spent today %"
 }

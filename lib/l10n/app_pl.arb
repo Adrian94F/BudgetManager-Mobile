@@ -11,5 +11,16 @@
     "cancel": "Anuluj",
     "save": "Zapisz",
     "selectMonth": "Wybierz miesiąc",
-    "newMonth": "Nowy miesiąc"
+    "newMonth": "Nowy miesiąc",
+    "balance": "Bilans",
+    "currentMonth": "Aktualny miesiąc",
+    "salary": "Pensja",
+    "otherIncome": "Inne przychody",
+    "total": "Razem",
+    "dailyExpenses": "Codzienne wydatki",
+    "recurrentExpenses": "Comiesięczne wydatki",
+    "daysLeft": "Dni do końca",
+    "maxDailyExpense": "Maksymalny dzienny wydatek",
+    "spentToday": "Wydatki dzisiaj",
+    "spentTodayPercent": "Wydatki dzisiaj (%)"
 }
