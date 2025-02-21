@@ -1,0 +1,15 @@
+{
+    "helloWorld": "Witaj, świecie!",
+    "summaryTitle": "Witaj, {userName}!",
+    "summary": "Start",
+    "incomes": "Przychody",
+    "expenses": "Wydatki",
+    "settings": "Ustawienia",
+    "monthDetails": "Szczegóły miesiąca",
+    "startDate": "Początek",
+    "endDate": "Koniec",
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "selectMonth": "Wybierz miesiąc",
+    "newMonth": "Nowy miesiąc"
+}

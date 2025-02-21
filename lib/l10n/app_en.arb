@@ -1,0 +1,27 @@
+{
+  "helloWorld": "Hello World!",
+  "@helloWorld": {
+    "description": "The conventional newborn programmer greeting"
+  },
+  "summaryTitle": "Hello {userName}!",
+  "@hello": {
+    "description": "Summary view title with greeting",
+    "placeholders": {
+      "userName": {
+        "type": "String",
+        "example": "Bob"
+      }
+    }
+  },
+  "summary": "Summary",
+  "incomes": "Incomes",
+  "expenses": "Expenses",
+  "settings": "Settings",
+  "monthDetails": "Month details",
+  "startDate": "Start date",
+  "endDate": "End date",
+  "cancel": "Cancel",
+  "save": "Save",
+  "selectMonth": "Select month",
+  "newMonth": "New month"
+}

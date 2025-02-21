@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../services/auth_service.dart';
 import 'expenses.dart';
@@ -32,27 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
   late Future<Map<String, dynamic>> _data;
   int? _currentMonthId;
-  String? _userName;
   Widget? _customAction;
-
-  static const List<BottomNavigationBarItem> _items = [
-    BottomNavigationBarItem(
-      icon: Icon(Icons.home_filled),
-      label: 'Summary',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.shopping_cart),
-      label: 'Expenses',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.attach_money),
-      label: 'Incomes',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.settings),
-      label: 'Settings',
-    ),
-  ];
 
   Future<void> _logout(BuildContext context) async {
     await _authService.logout();
@@ -69,8 +50,10 @@ class _HomeScreenState extends State<HomeScreen> {
     String? login = await _storage.read(key: "login");
     if (login != null) {
       setState(() {
-        _userName = login;
-        _screenTitles[0] = "Hello, $_userName!";
+        _screenTitles[0] = AppLocalizations.of(context)!.summaryTitle(login);
+        _screenTitles[1] = AppLocalizations.of(context)!.expenses;
+        _screenTitles[2] = AppLocalizations.of(context)!.incomes;
+        _screenTitles[3] = AppLocalizations.of(context)!.settings;
       });
     }
   }
@@ -114,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   shadowColor: Theme.of(context).colorScheme.shadow,
-                  actions: _customActionsMenu() + _monthMenu(_monthRelated, []),
+                  actions: _customActionsMenu() + _monthMenu(context, _monthRelated, []),
                 ),
                 bottomNavigationBar: _bottomNavigation()
             );
@@ -156,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 shadowColor: Theme.of(context).colorScheme.shadow,
-                actions: _customActionsMenu() + _monthMenu(_monthRelated, months),
+                actions: _customActionsMenu() + _monthMenu(context, _monthRelated, months),
               ),
               bottomNavigationBar: _bottomNavigation(),
             );
@@ -182,7 +165,24 @@ class _HomeScreenState extends State<HomeScreen> {
           _currentIndex = index;
         });
       },
-      items: _items,
+      items: [
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.home_filled),
+          label: AppLocalizations.of(context)!.summary,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.shopping_cart),
+          label: AppLocalizations.of(context)!.expenses,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.attach_money),
+          label: AppLocalizations.of(context)!.incomes,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.settings),
+          label: AppLocalizations.of(context)!.settings,
+        ),
+      ],
     );
   }
 
@@ -213,13 +213,13 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text("Month details"),
+              title: Text(AppLocalizations.of(context)!.monthDetails),
               actionsPadding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Start date:"),
+                  Text(AppLocalizations.of(context)!.startDate),
                   TextButton(
                     onPressed: () async {
                       DateTime? pickedDate = await showDatePicker(
@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text("${startDate.toLocal()}".split(' ')[0]),
                   ),
                   const SizedBox(height: 8),
-                  const Text("End date:"),
+                  Text(AppLocalizations.of(context)!.endDate),
                   TextButton(
                     onPressed: () async {
                       DateTime? pickedDate = await showDatePicker(
@@ -259,14 +259,14 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
+                  child: Text(AppLocalizations.of(context)!.cancel),
                 ),
                 TextButton(
                   onPressed: () {
                     // TODO: save data
                     Navigator.pop(context);
                   },
-                  child: const Text("Save"),
+                  child: Text(AppLocalizations.of(context)!.save),
                 ),
               ],
             );
@@ -281,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Select month"),
+          title: Text(AppLocalizations.of(context)!.selectMonth),
           actionsPadding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
           contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 24.0),
           content: SizedBox(
@@ -336,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
           ],
         );
@@ -353,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
-  List<Widget> _monthMenu(bool isMonthRelated, List<dynamic> months) {
+  List<Widget> _monthMenu(BuildContext context, bool isMonthRelated, List<dynamic> months) {
     var currentMonthIdx = _getCurrentMonthIdx(months);
     var previousEnabled = false;
     var nextEnabled = false;
@@ -402,15 +402,15 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         menuChildren: [
           MenuItemButton(
-              child: const Text("Details"),
+              child: Text(AppLocalizations.of(context)!.monthDetails),
               onPressed: () => _showMonthDetailsDialog(months)
           ),
           MenuItemButton(
-              child: const Text("Select"),
+              child: Text(AppLocalizations.of(context)!.selectMonth),
               onPressed: () => _showMonthSelectorDialog(months)
           ),
           MenuItemButton(
-              child: const Text("New month"),
+              child: Text(AppLocalizations.of(context)!.newMonth),
               onPressed: () {
                 // TODO
               }
