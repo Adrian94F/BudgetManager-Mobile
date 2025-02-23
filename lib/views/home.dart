@@ -82,15 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _fetchData() {
-    try {
-      _data = _authService.get("month/${_currentMonthId == null
-          ? ''
-          : '?month_id=$_currentMonthId'}");
-      return;
-    } catch (e) {
-      print("trying to fetch current month");
-    }
-    _data = _authService.get("month");
+      _data = _authService.get("month/${_currentMonthId == null ? '' : '?month_id=$_currentMonthId'}");
   }
 
   @override
