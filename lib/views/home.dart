@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 import '../services/auth_service.dart';
 import 'expenses_list.dart';
@@ -219,6 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showMonthDetailsDialog(List<dynamic> months) {
     var currentMonthIdx = _getCurrentMonthIdx(months);
+    bool isLoading = false;
+    String? errorMessage;
     DateTime startDate = DateTime.parse(months[currentMonthIdx]['start_date']);
     DateTime endDate = DateTime.parse(months[currentMonthIdx]['end_date']);
 
@@ -277,9 +280,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(AppLocalizations.of(context)!.cancel),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // TODO: save data
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    setState(() {
+                      isLoading = true;
+                      errorMessage = null;
+                    });
+
+                    var monthId = months[currentMonthIdx]['id'];
+                    var format = DateFormat("yyyy-MM-dd");
+                    var requestData = {
+                      'start_date': format.format(startDate),
+                      'end_date': format.format(endDate),
+                      'id': monthId,
+                    };
+
+                    try {
+                      await _authService.post("month/", requestData);
+                      Navigator.pop(context);
+                      _handleRefresh();
+                    } catch (e) {
+                      setState(() {
+                        isLoading = false;
+                        errorMessage = AppLocalizations.of(context)!.errorSavingData;
+                      });
+                    }
                   },
                   child: Text(AppLocalizations.of(context)!.save),
                 ),
