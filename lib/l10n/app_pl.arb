@@ -42,5 +42,16 @@
     "connection": "Połączenie",
     "serverUrl": "Adres URL serwera",
     "saveServerUrl": "Zapisz adres URL serwera",
-    "filteredExpenses": "Wybrane wydatki"
+    "filteredExpenses": "Wybrane wydatki",
+    "expenseDetails": "Szczegóły wydatku",
+    "addExpense": "Dodaj wydatek",
+    "incomeDetails": "Szczegóły przychodu",
+    "addIncome": "Dodaj przychód",
+    "amount": "Kwota",
+    "date": "Data",
+    "comment": "Komentarz",
+    "errorSavingData": "Wystąpił błąd podczas zapisywania danych.",
+    "pleaseFillAllFields": "Proszę uzupełnić wszystkie pola.",
+    "alert": "Uwaga",
+    "incomeRemoval": "Czy na pewno chcesz usunąć ten przychód?"
 }

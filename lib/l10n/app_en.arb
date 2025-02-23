@@ -54,5 +54,16 @@
   "connection": "Connection",
   "serverUrl": "Server URL",
   "saveServerUrl": "Save server URL",
-  "filteredExpenses": "Filtered expenses"
+  "filteredExpenses": "Filtered expenses",
+  "expenseDetails": "Expense details",
+  "addExpense": "Add expense",
+  "incomeDetails": "Income details",
+  "addIncome": "Add income",
+  "amount": "Amount",
+  "date": "Date",
+  "comment": "Comment",
+  "errorSavingData": "Encountered error while saving data.",
+  "pleaseFillAllFields": "Please fill all fields.",
+  "alert": "Alert",
+  "incomeRemoval": "Do you really want to remove this income?"
 }
