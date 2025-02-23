@@ -50,26 +50,11 @@ class FilteredExpensesList extends StatelessWidget {
             child: ExpensesListView(
               expenses: expenses,
               categories: categories,
-              showFab: false,
-              showDates: filter.date == null
-          ),)
-
+              filter: filter
+            )
+          )
         ]
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // TODO
-        },
-        label: Text(AppLocalizations.of(context)!.add),
-        icon: const Icon(Icons.add),
       ),
     );
   }
-}
-
-class ExpensesFilter {
-  DateTime? date;
-  int? category;
-
-  ExpensesFilter({this.date, this.category});
 }

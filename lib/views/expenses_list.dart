@@ -7,10 +7,10 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class ExpensesListView extends StatefulWidget {
   final List<dynamic> expenses;
   final List<dynamic> categories;
-  final bool? showFab;
-  final bool? showDates;
+  ExpensesFilter filter = ExpensesFilter();
 
-  const ExpensesListView({Key? key, required this.expenses, required this.categories, this.showFab = true, this.showDates = true}) : super(key: key);
+  ExpensesListView({Key? key, required this.expenses, required this.categories, required ExpensesFilter filter}) : super(key: key);
+  ExpensesListView.filtered({Key? key, required this.expenses, required this.categories, required this.filter}) : super(key: key);
 
   @override
   State<ExpensesListView> createState() => _ExpensesListViewState();
@@ -217,22 +217,20 @@ class _ExpensesListViewState extends State<ExpensesListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: widget.showFab == true
-        ? FloatingActionButton.extended(
-            onPressed: () {
-              // TODO
-            },
-            label: Text(AppLocalizations.of(context)!.add),
-            icon: const Icon(Icons.add),
-          )
-        : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // TODO
+        },
+        label: Text(AppLocalizations.of(context)!.add),
+        icon: const Icon(Icons.add),
+      ),
       body: ListView.builder(
         controller: _scrollController,
         itemCount: widget.expenses.length,
         padding: const EdgeInsets.only(bottom: 80),
         itemBuilder: (context, index) {
           final expense = widget.expenses[index];
-          bool showDateHeader = (index == 0 || widget.expenses[index - 1]['date'] != expense['date']) && widget.showDates == true;
+          bool showDateHeader = (index == 0 || widget.expenses[index - 1]['date'] != expense['date']) && widget.filter.date == null;
 
           return Column(
             key: _itemKeys[index],
@@ -247,4 +245,98 @@ class _ExpensesListViewState extends State<ExpensesListView> {
       ),
     );
   }
+
+
+  /*Future<List<int>> getTopNCategories(List<dynamic> expenses, int nOfCategories) async {
+    Map<int, int> categoryCounts = {};
+    for (var expense in expenses) {
+      int categoryId = expense['category'];
+      categoryCounts[categoryId] = (categoryCounts[categoryId] ?? 0) + 1;
+    }
+    List<MapEntry<int, int>> categoryCountsList = categoryCounts.entries.toList();
+    categoryCountsList.sort((a, b) => b.value.compareTo(a.value));
+    return categoryCountsList.take(nOfCategories).map((entry) => entry.key).toList();
+  }
+
+  void _showExpenseDetailsDialog(Map<String, dynamic>? expense, List<dynamic> categories, List<int> topCategories) {
+    final title = expense != null
+      ? AppLocalizations.of(context)!.expenseDetails
+      : AppLocalizations.of(context)!.addExpense;
+
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(title),
+              actionsPadding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(AppLocalizations.of(context)!.startDate),
+                  TextButton(
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: startDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (pickedDate != null && pickedDate != startDate) {
+                        setState(() {
+                          startDate = pickedDate;
+                        });
+                      }
+                    },
+                    child: Text("${startDate.toLocal()}".split(' ')[0]),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(AppLocalizations.of(context)!.endDate),
+                  TextButton(
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: endDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (pickedDate != null && pickedDate != endDate) {
+                        setState(() {
+                          endDate = pickedDate;
+                        });
+                      }
+                    },
+                    child: Text("${endDate.toLocal()}".split(' ')[0]),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(AppLocalizations.of(context)!.cancel),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // TODO: save data
+                    Navigator.pop(context);
+                  },
+                  child: Text(AppLocalizations.of(context)!.save),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }*/
+}
+
+class ExpensesFilter {
+  DateTime? date;
+  int? category;
+
+  ExpensesFilter({this.date, this.category});
 }
