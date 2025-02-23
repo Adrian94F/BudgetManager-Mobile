@@ -54,13 +54,14 @@ class AuthService {
     return accessToken != null;
   }
 
-  Future<Map<String, dynamic>> get([String url = "get-data"]) async {
+  Future<Map<String, dynamic>> get(String url) async {
     final accessToken = await storage.read(key: "access_token");
     final baseUrl = await getBaseUrl();
     final response = await http.get(
       Uri.parse("$baseUrl/$url"),
       headers: {
         'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
       },
     );
 
@@ -71,6 +72,35 @@ class AuthService {
       return get(url);
     } else {
       throw Exception("Failed to fetch data");
+    }
+  }
+
+  Future<Map<String, dynamic>> post(String url, Map<String, dynamic> body) async {
+    final accessToken = await storage.read(key: "access_token");
+    final baseUrl = await getBaseUrl();
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/$url"),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(body),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.body.isNotEmpty) {
+        //return json.decode(response.body);
+        return json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        return {};
+      }
+    } else if (response.statusCode == 401) {
+      await refreshToken();
+      return post(url, body);
+    } else {
+      print("Error ${response.statusCode}: ${response.body}");
+      throw Exception("Failed to post data. Error ${response.statusCode}: ${response.body}");
     }
   }
 
