@@ -14,7 +14,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   void initState() {
     super.initState();
-    _data = _authService.get();
+    _data = _authService.get("statistics");
   }
 
   @override
