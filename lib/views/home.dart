@@ -463,6 +463,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 try {
                   await _authService.post("month/", requestData);
+                  setState(() {
+                    _currentMonthId = null;
+                  });
                   _handleRefresh();
                 } catch (e) {
                   setState(() {
