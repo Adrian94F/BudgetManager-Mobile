@@ -68,13 +68,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _screens = [
       SummaryScreen(data: data),
-      ExpensesListView(expenses: expenses, categories: categories),
+      ExpensesListView(expenses: expenses, categories: categories, filter: ExpensesFilter()),
       ExpensesTableView(expenses: expenses, categories: categories, month: month, refreshParent: _handleRefresh),
       // ExpensesScreen(
       //     data: data,
       //     setCustomAction: _setCustomAction,
       //     refreshParent: _handleRefresh),
-      IncomesScreen(data: data),
+      IncomesScreen(data: data, refreshParent: () => _handleRefresh(),),
       SettingsScreen(setThemeMode: widget.setThemeMode),
     ];
   }
