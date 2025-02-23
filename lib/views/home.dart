@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _fetchData() {
-    _data = _authService.get("get-month${_currentMonthId == null ? '' : '/?month_id=$_currentMonthId'}");
+    _data = _authService.get("month/${_currentMonthId == null ? '' : '?month_id=$_currentMonthId'}");
   }
 
   @override
