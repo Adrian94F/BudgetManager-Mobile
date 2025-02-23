@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:jiffy/jiffy.dart';
 
 import '../services/auth_service.dart';
 import 'expenses_list.dart';
@@ -81,7 +82,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _fetchData() {
-    _data = _authService.get("month/${_currentMonthId == null ? '' : '?month_id=$_currentMonthId'}");
+    try {
+      _data = _authService.get("month/${_currentMonthId == null
+          ? ''
+          : '?month_id=$_currentMonthId'}");
+      return;
+    } catch (e) {
+      print("trying to fetch current month");
+    }
+    _data = _authService.get("month");
   }
 
   @override
@@ -450,8 +459,25 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           MenuItemButton(
               child: Text(AppLocalizations.of(context)!.newMonth),
-              onPressed: () {
-                // TODO
+              onPressed: () async {
+                var latestMonth = months[0]!;
+                var startDate = DateTime.parse(latestMonth['end_date']).add(const Duration(days: 1));
+                var endDate = Jiffy.parseFromDateTime(startDate).add(months: 1).subtract(days: 1).dateTime;
+                var format = DateFormat("yyyy-MM-dd");
+                var requestData = {
+                  'start_date': format.format(startDate),
+                  'end_date': format.format(endDate),
+                };
+
+                try {
+                  await _authService.post("month/", requestData);
+                  _handleRefresh();
+                } catch (e) {
+                  setState(() {
+                    // isLoading = false;
+                    // errorMessage = AppLocalizations.of(context)!.errorSavingData;
+                  });
+                }
               }
           ),
         ],
