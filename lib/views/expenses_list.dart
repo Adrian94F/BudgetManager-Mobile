@@ -271,9 +271,9 @@ class _ExpensesListViewState extends State<ExpensesListView> {
           expense: expense,
           categories: widget.categories,
           monthId: widget.monthId,
-          prefferedCategoryId: expense != null ? expense['category'] : widget.filter.category,
+          preferredCategoryId: expense != null ? expense['category'] : widget.filter.category,
           topCategories: topCategories,
-          prefferedDate: expense != null ? DateTime.parse(expense['date']) : widget.filter.date,
+          preferredDate: expense != null ? DateTime.parse(expense['date']) : widget.filter.date,
         ))
     ).then(
       (value) => setState(() {

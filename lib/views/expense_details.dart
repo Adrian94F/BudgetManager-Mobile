@@ -8,16 +8,16 @@ class ExpenseDetails extends StatefulWidget {
   final List<dynamic> categories;
   final List<int>? topCategories;
   final int monthId;
-  final int? prefferedCategoryId;
-  final DateTime? prefferedDate;
+  final int? preferredCategoryId;
+  final DateTime? preferredDate;
 
   const ExpenseDetails({
     super.key,
     this.expense,
     required this.categories,
     required this.monthId,
-    this.prefferedCategoryId,
-    this.prefferedDate,
+    this.preferredCategoryId,
+    this.preferredDate,
     this.topCategories,
   });
 
@@ -39,10 +39,10 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
     super.initState();
     _valueController = TextEditingController(text: widget.expense?['value']?.toString() ?? '');
     _dateController = TextEditingController(
-      text: widget.expense?['date'] ?? DateFormat("yyyy-MM-dd").format(widget.prefferedDate ?? DateTime.now()),
+      text: widget.expense?['date'] ?? DateFormat("yyyy-MM-dd").format(widget.preferredDate ?? DateTime.now()),
     );
     _commentController = TextEditingController(text: widget.expense?['comment'] ?? '');
-    _categoryId = widget.expense?['category'] ?? widget.prefferedCategoryId ?? (widget.topCategories != null ? widget.topCategories![0] : widget.categories.first['id']);
+    _categoryId = widget.expense?['category'] ?? widget.preferredCategoryId ?? (widget.topCategories != null ? widget.topCategories![0] : widget.categories.first['id']);
     _isRecurrent = widget.expense?['is_monthly'] ?? false;
   }
 
@@ -97,7 +97,7 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
       context: context,
       initialDate: widget.expense != null
           ? DateTime.parse(widget.expense!['date'])
-          : widget.prefferedDate ?? DateTime.now(),
+          : widget.preferredDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
@@ -132,89 +132,108 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
               ),
-            TextField(
-              controller: _valueController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.amount,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _dateController,
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.date,
-                suffixIcon: const Icon(Icons.calendar_today),
-                border: const OutlineInputBorder(),
-              ),
-              onTap: _selectDate,
-            ),
-            const SizedBox(height: 16),
 
-            if (topCategoriesList.isNotEmpty && widget.prefferedCategoryId == null) ...[
-              Text(AppLocalizations.of(context)!.quickSelectCategory),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8.0,
-                children: topCategoriesList.map((category) {
-                  bool isSelected = _categoryId == category['id'];
-                  return ChoiceChip(
-                    label: Text(category['name']),
-                    selected: isSelected,
-                    selectedColor: Colors.blue.shade200,
-                    onSelected: (_) {
-                      setState(() {
-                        _categoryId = category['id'];
-                      });
-                    },
-                  );
-                }).toList(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: TextField(
+                controller: _valueController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.amount,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: TextField(
+                controller: _dateController,
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.date,
+                  suffixIcon: const Icon(Icons.calendar_today),
+                  border: const OutlineInputBorder(),
+                ),
+                onTap: _selectDate,
+              )
+            ),
+
+            if (topCategoriesList.isNotEmpty && widget.preferredCategoryId == null) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Text(AppLocalizations.of(context)!.quickSelectCategory)
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                child: Wrap(
+                  spacing: 8.0,
+                  children: topCategoriesList.map((category) {
+                    bool isSelected = _categoryId == category['id'];
+                    return ChoiceChip(
+                      label: Text(category['name']),
+                      selected: isSelected,
+                      selectedColor: Colors.blue.shade200,
+                      onSelected: (_) {
+                        setState(() {
+                          _categoryId = category['id'];
+                        });
+                      },
+                    );
+                  }).toList(),
+                )
               ),
               const SizedBox(height: 16),
             ],
 
-            DropdownButtonFormField<int>(
-              value: _categoryId,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.category,
-                border: const OutlineInputBorder(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: DropdownButtonFormField<int>(
+                value: _categoryId,
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.category,
+                  border: const OutlineInputBorder(),
+                ),
+                items: widget.categories.map((category) {
+                  return DropdownMenuItem<int>(
+                    value: category['id'],
+                    child: Text(category['name']),
+                  );
+                }).toList(),
+                onChanged: (int? newValue) {
+                  setState(() {
+                    _categoryId = newValue ?? 0;
+                  });
+                },
               ),
-              items: widget.categories.map((category) {
-                return DropdownMenuItem<int>(
-                  value: category['id'],
-                  child: Text(category['name']),
-                );
-              }).toList(),
-              onChanged: (int? newValue) {
-                setState(() {
-                  _categoryId = newValue ?? 0;
-                });
-              },
             ),
 
-            const SizedBox(height: 16),
-            TextField(
-              controller: _commentController,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.comment,
-                border: const OutlineInputBorder(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: TextField(
+                controller: _commentController,
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.comment,
+                  border: const OutlineInputBorder(),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            SwitchListTile(
+
+            CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               controlAffinity: ListTileControlAffinity.leading,
               title: Text(AppLocalizations.of(context)!.recurrentExpense),
               value: _isRecurrent,
-              onChanged: (bool value) {
-                setState(() {
-                  _isRecurrent = value;
-                });
+              onChanged: (bool? value) {
+                if (value != null) {
+                  setState(() {
+                    _isRecurrent = value;
+                  });
+                }
               },
             ),
-            const SizedBox(height: 16),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
