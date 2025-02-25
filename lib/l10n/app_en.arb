@@ -68,5 +68,9 @@
   "incomeRemoval": "Do you really want to remove this income?",
   "expenseRemoval": "Do you really want to remove this expense?",
   "category": "Category",
-  "quickSelectCategory": "Quick select category"
+  "quickSelectCategory": "Quick select category",
+  "login": "Login",
+  "username": "Username",
+  "password": "Password",
+  "rememberMe": "Remember me"
 }

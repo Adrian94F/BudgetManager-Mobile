@@ -56,5 +56,9 @@
     "incomeRemoval": "Czy na pewno chcesz usunąć ten przychód?",
     "expenseRemoval": "Czy na pewno chcesz usunąć ten wydatek?",
     "category": "Kategoria",
-    "quickSelectCategory": "Sugerowane kategorie"
+    "quickSelectCategory": "Sugerowane kategorie",
+    "login": "Zaloguj się",
+    "username": "Nazwa użytkownika",
+    "password": "Hasło",
+    "rememberMe": "Zapamiętaj mnie"
 }

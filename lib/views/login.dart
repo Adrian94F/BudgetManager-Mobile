@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:budget_manager/services/auth_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -66,23 +67,23 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.login)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _usernameController,
-              decoration: const InputDecoration(labelText: "Username"),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.username),
             ),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: "Password"),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.password),
               obscureText: true,
             ),
             TextField(
               controller: _serverController,
-              decoration: const InputDecoration(labelText: "Server URL"),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.serverUrl),
               onChanged: _setServerUrl,
             ),
             Row(
@@ -95,12 +96,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     });
                   },
                 ),
-                const Text("Remember me")
+                Text(AppLocalizations.of(context)!.rememberMe)
               ],
             ),
             ElevatedButton(
               onPressed: _login,
-              child: const Text("Login"),
+              child: Text(AppLocalizations.of(context)!.login),
             ),
           ],
         ),
