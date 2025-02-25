@@ -22,22 +22,15 @@ class _IncomesScreenState extends State<IncomesScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width * 0.25,
-            maxWidth: MediaQuery.of(context).size.width * 0.25,
-          ),
-          child: Text(
-            Formatters.currencyFormatter.format(income['value']),
-            textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-          ),
-        ),
-
         Text(
           income['date'] ?? "",
           style: const TextStyle(color: Colors.grey, fontSize: 16.0),
         ),
+        Text(
+          Formatters.currencyFormatter.format(income['value']),
+          textAlign: TextAlign.right,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+        )
       ],
     );
   }
@@ -46,40 +39,34 @@ class _IncomesScreenState extends State<IncomesScreen> {
     if ((income['comment'] == null || income['comment'].isEmpty) && income['is_salary'] == false) {
       return null;
     }
-    return Container(
-        margin: const EdgeInsets.only(top: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Expanded(
-              child: Text(
-                income['comment'],
-                style: const TextStyle(fontStyle: FontStyle.italic),
-                textAlign: TextAlign.end,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        if (income['is_salary'] == true)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 4.0, right: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.grey.shade100
+                      : Colors.grey.shade800,
+                  borderRadius: BorderRadius.circular(4.0),
+                ),
+                child: Text(
+                  AppLocalizations.of(context)!.salary,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-            if (income['is_salary'] == true)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 4.0, left: 8.0),
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.light
-                          ? Colors.grey.shade100
-                          : Colors.grey.shade800,
-                      borderRadius: BorderRadius.circular(4.0),
-                    ),
-                    child: Text(
-                      AppLocalizations.of(context)!.salary,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              )
-          ],
+            ],
+          ),
+        Text(
+            income['comment'],
+            style: const TextStyle(fontStyle: FontStyle.italic)
         )
+      ],
     );
   }
 

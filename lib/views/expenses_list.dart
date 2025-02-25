@@ -103,39 +103,40 @@ class _ExpensesListViewState extends State<ExpensesListView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width * 0.25,
-            maxWidth: MediaQuery.of(context).size.width * 0.25,
-          ),
-          child: Text(
-            Formatters.currencyFormatter.format(expense['value']),
-            textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+                  margin: const EdgeInsets.only(right: 8.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? Colors.indigo.shade50
+                        : Colors.grey.shade900,
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Text(
+                    _getCategoryName(expense['category']),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.grey.shade900
+                            : Colors.grey.shade100),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        ConstrainedBox(
-          constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.6),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.light
-                  ? Colors.indigo.shade50
-                  : Colors.grey.shade900,
-              borderRadius: BorderRadius.circular(4.0),
-            ),
-            child: Text(
-              _getCategoryName(expense['category']),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.grey.shade900
-                      : Colors.grey.shade100),
-            ),
-          ),
+
+        Text(
+          Formatters.currencyFormatter.format(expense['value']),
+          textAlign: TextAlign.right,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
         ),
       ],
     );
@@ -143,7 +144,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
 
   Container _monthlyExpenseTag() {
     return Container(
-      margin: const EdgeInsetsDirectional.fromSTEB(8, 4, 0, 4),
+      margin: const EdgeInsetsDirectional.fromSTEB(0, 4, 8, 4),
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.light
@@ -167,16 +168,15 @@ class _ExpensesListViewState extends State<ExpensesListView> {
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        if (expense['is_monthly'])
+          _monthlyExpenseTag(),
         Text(
           expense['comment'],
           textAlign: TextAlign.right,
           style: const TextStyle(fontStyle: FontStyle.italic),
-        ),
-
-        if (expense['is_monthly'])
-          _monthlyExpenseTag()
+        )
       ],
     );
   }
