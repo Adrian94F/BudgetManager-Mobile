@@ -62,9 +62,11 @@ class _IncomesScreenState extends State<IncomesScreen> {
               ),
             ],
           ),
-        Text(
+        Flexible(
+          child: Text(
             income['comment'],
             style: const TextStyle(fontStyle: FontStyle.italic)
+          )
         )
       ],
     );

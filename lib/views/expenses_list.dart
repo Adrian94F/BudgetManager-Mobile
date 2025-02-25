@@ -172,10 +172,11 @@ class _ExpensesListViewState extends State<ExpensesListView> {
       children: [
         if (expense['is_monthly'])
           _monthlyExpenseTag(),
-        Text(
-          expense['comment'],
-          textAlign: TextAlign.right,
-          style: const TextStyle(fontStyle: FontStyle.italic),
+        Flexible(
+          child: Text(
+            expense['comment'],
+            style: const TextStyle(fontStyle: FontStyle.italic),
+          )
         )
       ],
     );
