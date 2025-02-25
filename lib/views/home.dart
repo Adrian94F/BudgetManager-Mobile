@@ -69,15 +69,29 @@ class _HomeScreenState extends State<HomeScreen> {
     final month = data['month'] as Map<String, dynamic>;
 
     _screens = [
-      SummaryScreen(data: data),
-      ExpensesListView(expenses: expenses, categories: categories, filter: ExpensesFilter()),
-      ExpensesTableView(expenses: expenses, categories: categories, month: month, refreshParent: _handleRefresh),
-      // ExpensesScreen(
-      //     data: data,
-      //     setCustomAction: _setCustomAction,
-      //     refreshParent: _handleRefresh),
-      IncomesScreen(data: data, refreshParent: () => _handleRefresh(),),
-      SettingsScreen(setThemeMode: widget.setThemeMode),
+      SummaryScreen(
+        data: data
+      ),
+      ExpensesListView(
+        expenses: expenses,
+        categories: categories,
+        filter: ExpensesFilter(),
+        monthId: month['id'],
+        refreshParent: _handleRefresh
+      ),
+      ExpensesTableView(
+        expenses: expenses,
+        categories: categories,
+        month: month,
+        refreshParent: _handleRefresh
+      ),
+      IncomesScreen(
+        data: data,
+        refreshParent: _handleRefresh
+      ),
+      SettingsScreen(
+        setThemeMode: widget.setThemeMode
+      ),
     ];
   }
 

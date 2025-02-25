@@ -8,8 +8,10 @@ class FilteredExpensesList extends StatelessWidget {
   final List<dynamic> expenses;
   final List<dynamic> categories;
   final ExpensesFilter filter;
+  final int monthId;
+  final Future<void> Function() refreshParent;
 
-  const FilteredExpensesList({super.key, required this.expenses, required this.categories, required this.filter});
+  const FilteredExpensesList({super.key, required this.expenses, required this.categories, required this.filter, required this.monthId, required this.refreshParent});
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,9 @@ class FilteredExpensesList extends StatelessWidget {
             child: ExpensesListView(
               expenses: expenses,
               categories: categories,
-              filter: filter
+              filter: filter,
+              monthId: monthId,
+              refreshParent: refreshParent
             )
           )
         ]

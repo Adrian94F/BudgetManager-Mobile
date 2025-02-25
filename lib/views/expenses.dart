@@ -67,8 +67,20 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
     return Scaffold(
       body: _list_table_switch.value
-        ? ExpensesListView(expenses: expenses, categories: categories, filter: ExpensesFilter())
-        : ExpensesTableView(expenses: expenses, categories: categories, month: month, refreshParent: _handleRefresh),
+        ? ExpensesListView(
+            expenses: expenses,
+            categories: categories,
+            filter: ExpensesFilter(),
+            monthId: month["id"],
+            refreshParent: _handleRefresh,
+          )
+        : ExpensesTableView(
+            expenses: expenses,
+            categories:
+            categories,
+            month: month,
+            refreshParent: _handleRefresh
+          ),
     );
   }
 }

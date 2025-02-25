@@ -77,8 +77,10 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
                 categories: widget.categories,
                 filter: ExpensesFilter(
                     date: date,
-                    category: categoryId
-                )
+                    category: categoryId,
+                ),
+                monthId: widget.month['id'],
+                refreshParent: widget.refreshParent,
             )
         ),
       ).then((value)=>setState((){

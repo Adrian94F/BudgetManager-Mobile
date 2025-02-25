@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
+import '../services/auth_service.dart';
 import '../tools/formatters.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import 'expense_details.dart';
 
 class ExpensesListView extends StatefulWidget {
   final List<dynamic> expenses;
   final List<dynamic> categories;
+  final Future<void> Function() refreshParent;
+  final int monthId;
   ExpensesFilter filter = ExpensesFilter();
 
-  ExpensesListView({Key? key, required this.expenses, required this.categories, required ExpensesFilter filter}) : super(key: key);
-  ExpensesListView.filtered({Key? key, required this.expenses, required this.categories, required this.filter}) : super(key: key);
+  ExpensesListView({Key? key, required this.expenses, required this.categories, required ExpensesFilter filter, required this.monthId, required this.refreshParent}) : super(key: key);
+  ExpensesListView.filtered({Key? key, required this.expenses, required this.categories, required this.filter, required this.monthId, required this.refreshParent}) : super(key: key);
 
   @override
   State<ExpensesListView> createState() => _ExpensesListViewState();
@@ -184,7 +189,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
         children: [
           SlidableAction(
             onPressed: (context) {
-              // TODO
+              _showExpenseDetailsDialog(expense);
             },
             foregroundColor: Colors.indigo,
             backgroundColor: Theme.of(context).brightness == Brightness.light
@@ -195,7 +200,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
           ),
           SlidableAction(
             onPressed: (context) {
-              // TODO
+              _showExpenseRemovalDialog(expense);
             },
             foregroundColor: Colors.red.shade900,
             backgroundColor: Theme.of(context).brightness == Brightness.light
@@ -219,7 +224,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO
+          _showExpenseDetailsDialog(null);
         },
         label: Text(AppLocalizations.of(context)!.add),
         icon: const Icon(Icons.add),
@@ -247,7 +252,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
   }
 
 
-  /*Future<List<int>> getTopNCategories(List<dynamic> expenses, int nOfCategories) async {
+  List<int> getTopNCategories(List<dynamic> expenses, int nOfCategories) {
     Map<int, int> categoryCounts = {};
     for (var expense in expenses) {
       int categoryId = expense['category'];
@@ -258,11 +263,30 @@ class _ExpensesListViewState extends State<ExpensesListView> {
     return categoryCountsList.take(nOfCategories).map((entry) => entry.key).toList();
   }
 
-  void _showExpenseDetailsDialog(Map<String, dynamic>? expense, List<dynamic> categories, List<int> topCategories) {
-    final title = expense != null
-      ? AppLocalizations.of(context)!.expenseDetails
-      : AppLocalizations.of(context)!.addExpense;
+  void _showExpenseDetailsDialog(Map<String, dynamic>? expense) {
+    final topCategories = getTopNCategories(widget.expenses, 5);
+    Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ExpenseDetails(
+          expense: expense,
+          categories: widget.categories,
+          monthId: widget.monthId,
+          prefferedCategoryId: expense != null ? expense['category'] : widget.filter.category,
+          topCategories: topCategories,
+          prefferedDate: expense != null ? DateTime.parse(expense['date']) : widget.filter.date,
+        ))
+    ).then(
+      (value) => setState(() {
+        widget.refreshParent();
+      })
+    );
+  }
 
+  void _showExpenseRemovalDialog(Map<String, dynamic> expense) async {
+    final title = AppLocalizations.of(context)!.alert;
+
+    bool isLoading = false;
+    String? errorMessage;
 
     showDialog(
       context: context,
@@ -271,59 +295,51 @@ class _ExpensesListViewState extends State<ExpensesListView> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text(title),
-              actionsPadding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-              content: Column(
+              content: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.startDate),
-                  TextButton(
-                    onPressed: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: startDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null && pickedDate != startDate) {
-                        setState(() {
-                          startDate = pickedDate;
-                        });
-                      }
-                    },
-                    child: Text("${startDate.toLocal()}".split(' ')[0]),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(AppLocalizations.of(context)!.endDate),
-                  TextButton(
-                    onPressed: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: endDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null && pickedDate != endDate) {
-                        setState(() {
-                          endDate = pickedDate;
-                        });
-                      }
-                    },
-                    child: Text("${endDate.toLocal()}".split(' ')[0]),
-                  ),
+                  if (errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                    ),
+                  Text(AppLocalizations.of(context)!.expenseRemoval)
                 ],
               ),
-              actions: [
+              actions: isLoading
+                  ? []
+                  : [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(AppLocalizations.of(context)!.cancel),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // TODO: save data
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    setState(() {
+                      isLoading = true;
+                      errorMessage = null;
+                    });
+
+                    try {
+                      final authService = AuthService();
+                      final requestData = {
+                        'id': expense['id'],
+                        'remove': 'true'
+                      };
+
+                      await authService.post("expense/", requestData);
+                      Navigator.pop(context);
+                      widget.refreshParent();
+                    } catch (e) {
+                      setState(() {
+                        isLoading = false;
+                        errorMessage = AppLocalizations.of(context)!.errorSavingData;
+                      });
+                    }
                   },
-                  child: Text(AppLocalizations.of(context)!.save),
+                  child: Text(AppLocalizations.of(context)!.remove),
                 ),
               ],
             );
@@ -331,7 +347,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
         );
       },
     );
-  }*/
+  }
 }
 
 class ExpensesFilter {

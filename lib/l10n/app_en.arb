@@ -65,5 +65,8 @@
   "errorSavingData": "Encountered error while saving data.",
   "pleaseFillAllFields": "Please fill all fields.",
   "alert": "Alert",
-  "incomeRemoval": "Do you really want to remove this income?"
+  "incomeRemoval": "Do you really want to remove this income?",
+  "expenseRemoval": "Do you really want to remove this expense?",
+  "category": "Category",
+  "quickSelectCategory": "Quick select category"
 }
