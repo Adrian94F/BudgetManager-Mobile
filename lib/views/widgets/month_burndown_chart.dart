@@ -9,7 +9,7 @@ class SimpleBurndownChart extends StatelessWidget {
   final DateTime endDate;
   final bool animate = true;
 
-  SimpleBurndownChart({required this.incomes, required this.expenses, required this.startDate, required this.endDate});
+  const SimpleBurndownChart({super.key, required this.incomes, required this.expenses, required this.startDate, required this.endDate});
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +52,9 @@ class SimpleBurndownChart extends StatelessWidget {
       primaryMeasureAxis: primaryMeasureAxis,
       domainAxis: domainAxis,
       animate: animate,
-      defaultRenderer: new LineRendererConfig(),
+      defaultRenderer: LineRendererConfig(),
       customSeriesRenderers: [
-        new BarRendererConfig(
+        BarRendererConfig(
             customRendererId: 'customBar')
       ],
       behaviors: [
@@ -191,7 +191,7 @@ class SimpleBurndownChart extends StatelessWidget {
       date = date.add(const Duration(days: 1));
     }
 
-    if (DateTime.now().isBefore(endDate.add(Duration(days: 1))) && DateTime.now().isAfter(startDate)) {
+    if (DateTime.now().isBefore(endDate.add(const Duration(days: 1))) && DateTime.now().isAfter(startDate)) {
       var todayText = DateFormat("d.MM").format(DateTime.now());
       var todaySegment = LineAnnotationSegment(
           todayText,

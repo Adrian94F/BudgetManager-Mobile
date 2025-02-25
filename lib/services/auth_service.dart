@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   Future<String> getBaseUrl() async {
     return "${await storage.read(key: "server_url") ?? "http://10.0.2.2:8000"}/api";

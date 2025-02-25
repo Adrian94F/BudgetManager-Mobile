@@ -14,7 +14,7 @@ class AppSettingsScreen extends StatefulWidget {
 
 class _AppSettingsScreenState extends State<AppSettingsScreen> {
   final TextEditingController _serverController = TextEditingController();
-  final FlutterSecureStorage _storage = FlutterSecureStorage();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String _currentTheme = "system";
 
   @override
@@ -75,7 +75,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     return [
       Text(
         AppLocalizations.of(context)!.appereance,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 16),
       ListTile(
@@ -114,14 +114,14 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     return [
       Text(
         AppLocalizations.of(context)!.connection,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 16),
       TextFormField(
         controller: _serverController,
         decoration: InputDecoration(
           labelText: AppLocalizations.of(context)!.serverUrl,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
       ),
       const SizedBox(height: 16),

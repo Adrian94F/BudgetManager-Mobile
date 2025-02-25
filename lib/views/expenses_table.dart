@@ -105,20 +105,20 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     return bgColor;
   }
 
-  void _scrollToXY({double? x, double? y}) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _tableViewController.horizontalScrollController.animateTo(
-        _savedHorizontalScroll ?? 0,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-      _tableViewController.verticalScrollController.animateTo(
-        _savedVerticalScroll ?? 0,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    });
-  }
+  // void _scrollToXY({double? x, double? y}) {
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     _tableViewController.horizontalScrollController.animateTo(
+  //       _savedHorizontalScroll ?? 0,
+  //       duration: const Duration(milliseconds: 500),
+  //       curve: Curves.easeInOut,
+  //     );
+  //     _tableViewController.verticalScrollController.animateTo(
+  //       _savedVerticalScroll ?? 0,
+  //       duration: const Duration(milliseconds: 500),
+  //       curve: Curves.easeInOut,
+  //     );
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {

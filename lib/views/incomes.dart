@@ -73,7 +73,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     ),
                     child: Text(
                       AppLocalizations.of(context)!.salary,
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -167,7 +167,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     if (errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(errorMessage!, style: TextStyle(color: Colors.red)),
+                        child: Text(errorMessage!, style: const TextStyle(color: Colors.red)),
                       ),
                     TextField(
                       controller: valueController,

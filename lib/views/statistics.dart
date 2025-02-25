@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
 class StatisticsScreen extends StatefulWidget {
+  const StatisticsScreen({super.key});
+
   @override
   _StatisticsScreenState createState() => _StatisticsScreenState();
 }
@@ -23,7 +25,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       future: _data,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
         } else {

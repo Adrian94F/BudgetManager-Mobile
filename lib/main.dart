@@ -6,16 +6,18 @@ import 'package:budget_manager/services/auth_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
   final _authService = AuthService();
-  final _storage = FlutterSecureStorage();
+  final _storage = const FlutterSecureStorage();
   ThemeMode _themeMode = ThemeMode.system;
 
   @override
@@ -73,11 +75,11 @@ class _MyAppState extends State<MyApp> {
             } else if (snapshot.data == true) {
               return HomeScreen(setThemeMode: _setThemeMode);
             } else {
-              return LoginScreen();
+              return const LoginScreen();
             }
           },
         ),
-        '/login': (context) => LoginScreen(),
+        '/login': (context) => const LoginScreen(),
         '/home': (context) => HomeScreen(setThemeMode: _setThemeMode),
       },
       theme: ThemeData(

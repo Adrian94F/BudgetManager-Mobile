@@ -233,7 +233,7 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
                     widget.expense != null
                       ? AppLocalizations.of(context)!.save
                       : AppLocalizations.of(context)!.add,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 20
                     ),
                   ),
