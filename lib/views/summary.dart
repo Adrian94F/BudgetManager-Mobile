@@ -112,7 +112,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
   Widget _buildChartPlaceholder(Map<String, dynamic> data) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+      padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
       child: AspectRatio(
         aspectRatio: 2,
         child: SimpleBurndownChart(

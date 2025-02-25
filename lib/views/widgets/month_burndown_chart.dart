@@ -15,7 +15,10 @@ class SimpleBurndownChart extends StatelessWidget {
   Widget build(BuildContext context) {
     var seriesList = _createSeries(context, incomes, expenses, startDate, endDate);
     var primaryMeasureAxis = NumericAxisSpec(
-      tickProviderSpec: const BasicNumericTickProviderSpec(desiredTickCount: 4),
+      tickProviderSpec: const BasicNumericTickProviderSpec(
+        desiredMinTickCount: 6,
+        desiredMaxTickCount: 7
+      ),
       tickFormatterSpec: BasicNumericTickFormatterSpec(
         (num? number) {
           return number != 0
@@ -116,9 +119,13 @@ class SimpleBurndownChart extends StatelessWidget {
       var dateMonthlyExpenses = monthlyExpensesSums[date] ?? 0.0;
       var burndown = yesterdaySum - dateExpenses;
       var previousIdealBurndown = idealBurndownData[burndownData.length - 1].sum;
+      var idealBurndownValue = previousIdealBurndown - idealDailyExpensesSum;
+      if (idealBurndownValue < 0) {
+        idealBurndownValue = 0;
+      }
       final dateStr = formatter.format(date);
       burndownData.add(BudgetBurndown(dateStr, burndown));
-      idealBurndownData.add(BudgetBurndown(dateStr, previousIdealBurndown - idealDailyExpensesSum));
+      idealBurndownData.add(BudgetBurndown(dateStr, idealBurndownValue));
       dailyExpensesData.add(BudgetBurndown(dateStr, dateExpenses));
       monthlyExpensesData.add(BudgetBurndown(dateStr, dateMonthlyExpenses));
     }
@@ -184,16 +191,21 @@ class SimpleBurndownChart extends StatelessWidget {
       date = date.add(const Duration(days: 1));
     }
 
-    var todayText = DateFormat("d.MM").format(DateTime.now());
-    var todaySegment = LineAnnotationSegment(
-        todayText,
-        RangeAnnotationAxisType.domain,
-        strokeWidthPx: segmentWidth,
-        color: Theme.of(context).brightness == Brightness.light
-            ? MaterialPalette.indigo.makeShades(10)[9]
-            : MaterialPalette.indigo.shadeDefault.darker.darker.darker.darker.darker
-    );
-    list.add(todaySegment);
+    if (DateTime.now().isBefore(endDate.add(Duration(days: 1))) && DateTime.now().isAfter(startDate)) {
+      var todayText = DateFormat("d.MM").format(DateTime.now());
+      var todaySegment = LineAnnotationSegment(
+          todayText,
+          RangeAnnotationAxisType.domain,
+          strokeWidthPx: segmentWidth,
+          color: Theme
+              .of(context)
+              .brightness == Brightness.light
+              ? MaterialPalette.indigo.makeShades(10)[9]
+              : MaterialPalette.indigo.shadeDefault.darker.darker.darker.darker
+              .darker
+      );
+      list.add(todaySegment);
+    }
 
     return list;
   }
