@@ -23,6 +23,7 @@
     "total": "Razem",
     "dailyExpenses": "Codzienne wydatki",
     "recurrentExpenses": "Comiesięczne wydatki",
+    "recurrentExpense": "Comiesięczny wydatek",
     "daysLeft": "Dni do końca",
     "maxDailyExpense": "Maksymalny dzienny wydatek",
     "spentToday": "Wydatki dzisiaj",

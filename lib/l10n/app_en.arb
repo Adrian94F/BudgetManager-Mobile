@@ -35,6 +35,7 @@
   "total": "Total",
   "dailyExpenses": "Daily expenses",
   "recurrentExpenses": "Recurrent expenses",
+  "recurrentExpense": "Recurrent expense",
   "daysLeft": "Days left",
   "maxDailyExpense": "Max daily expense",
   "spentToday": "Spent today",

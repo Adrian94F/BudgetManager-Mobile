@@ -116,15 +116,6 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
 
     return Scaffold(
       appBar: AppBar(
-        // actions: [
-        //   IconButton(
-        //     onPressed: _isLoading ? null : _saveExpense,
-        //     icon: Icon(
-        //       Icons.add_rounded,
-        //       size: 32,
-        //     ),
-        //   )
-        // ],
         title: Text(widget.expense != null
             ? AppLocalizations.of(context)!.expenseDetails
             : AppLocalizations.of(context)!.addExpense),
@@ -215,7 +206,7 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               controlAffinity: ListTileControlAffinity.leading,
-              title: Text(AppLocalizations.of(context)!.salary),
+              title: Text(AppLocalizations.of(context)!.recurrentExpense),
               value: _isRecurrent,
               onChanged: (bool value) {
                 setState(() {
