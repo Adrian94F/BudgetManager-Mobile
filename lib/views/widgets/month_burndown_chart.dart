@@ -55,7 +55,10 @@ class SimpleBurndownChart extends StatelessWidget {
       defaultRenderer: LineRendererConfig(),
       customSeriesRenderers: [
         BarRendererConfig(
-            customRendererId: 'customBar')
+          stackedBarPaddingPx: 0,
+          customRendererId: 'customStackedBar',
+          groupingType: BarGroupingType.stacked,
+        )
       ],
       behaviors: [
         RangeAnnotation(_getSegments(context, startDate, endDate, segmentWidth)),
@@ -132,6 +135,16 @@ class SimpleBurndownChart extends StatelessWidget {
 
     return [
       Series<BudgetBurndown, String>(
+        id: 'Monthly',
+        colorFn: (_, __) => Theme.of(context).brightness == Brightness.light
+            ? MaterialPalette.indigo.makeShades(5)[4]
+            : MaterialPalette.indigo.makeShades(5)[4].darker.darker.darker.darker,
+        domainFn: (BudgetBurndown burndown, _) => burndown.day,
+        measureFn: (BudgetBurndown burndown, _) => burndown.sum,
+        data: monthlyExpensesData
+      )
+        ..setAttribute(rendererIdKey, 'customStackedBar'),
+      Series<BudgetBurndown, String>(
         id: 'Daily',
         colorFn: (_, __) => Theme.of(context).brightness == Brightness.light
           ? MaterialPalette.indigo.makeShades(5)[3]
@@ -140,17 +153,7 @@ class SimpleBurndownChart extends StatelessWidget {
         measureFn: (BudgetBurndown burndown, _) => burndown.sum,
         data: dailyExpensesData,
       )
-        ..setAttribute(rendererIdKey, 'customBar'),
-      Series<BudgetBurndown, String>(
-          id: 'Monthly',
-          colorFn: (_, __) => Theme.of(context).brightness == Brightness.light
-              ? MaterialPalette.indigo.makeShades(5)[4]
-              : MaterialPalette.indigo.makeShades(5)[4].darker.darker.darker.darker,
-          domainFn: (BudgetBurndown burndown, _) => burndown.day,
-          measureFn: (BudgetBurndown burndown, _) => burndown.sum,
-          data: monthlyExpensesData
-      )
-        ..setAttribute(rendererIdKey, 'customBar'),
+        ..setAttribute(rendererIdKey, 'customStackedBar'),
       Series<BudgetBurndown, String>(
         id: 'Ideal burndown',
         colorFn: (_, __) => MaterialPalette.indigo.makeShades(5)[2],
