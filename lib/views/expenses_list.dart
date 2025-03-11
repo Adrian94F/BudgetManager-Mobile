@@ -29,6 +29,21 @@ class _ExpensesListViewState extends State<ExpensesListView> {
   void initState() {
     super.initState();
 
+    widget.expenses.sort((a, b) {
+      int dateCmp = DateTime.parse(b['date']).compareTo(DateTime.parse(a['date']));  // group by date
+      if (dateCmp != 0) {
+        return dateCmp;
+      }
+      int idCmp = (a['id']).compareTo((b['id']));  // sort by id
+      return idCmp;
+      // int categoryCmp = (a['category']).compareTo((b['category']));
+      // if (categoryCmp != 0) {
+      //   return categoryCmp;
+      // }
+      // int valueCmp = (a['value']).compareTo((b['value']));
+      // return valueCmp;
+    });
+
     for (int i = 0; i < widget.expenses.length; i++) {
       _itemKeys[i] = GlobalKey();
     }

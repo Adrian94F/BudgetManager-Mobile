@@ -75,6 +75,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
   @override
   Widget build(BuildContext context) {
     final incomes = widget.data['incomes'] as List<dynamic>;
+    incomes.sort((b, a) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
