@@ -92,16 +92,17 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
       var balanceBeforeToday = incomesSum - monthlyExpensesSum - dailyExpensesBeforeTodaySum;
       var maxDailyExpenses = balanceBeforeToday / daysLeft;
+      var todayExpensesPercent = (todayExpensesSum / maxDailyExpenses * 100).round();
 
       groups.add({
         "name": AppLocalizations.of(context)!.currentMonth,
         "fields": [
           {"name": AppLocalizations.of(context)!.daysLeft, "value": daysLeft},
-          balanceBeforeToday > 0
-            ? {"name": AppLocalizations.of(context)!.maxDailyExpense, "value": maxDailyExpenses, "type": "currency"}
-            : {"name": AppLocalizations.of(context)!.maxDailyExpense, "value": "—", "type": "text"},
+          if (balanceBeforeToday > 0)
+            {"name": AppLocalizations.of(context)!.maxDailyExpense, "value": maxDailyExpenses, "type": "currency"},
           {"name": AppLocalizations.of(context)!.spentToday, "value": todayExpensesSum, "type": "currency"},
-          {"name": AppLocalizations.of(context)!.spentTodayPercent, "value": (todayExpensesSum / maxDailyExpenses * 100).round(), "type": "percent"}
+          if (balanceBeforeToday > 0)
+           {"name": AppLocalizations.of(context)!.spentTodayPercent, "value": todayExpensesPercent, "type": "percent"}
         ]
       });
     }
