@@ -78,7 +78,7 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
         'month': widget.monthId
       };
 
-      if (widget.expense != null) {
+      if (widget.expense != null && widget.expense!['id'] != null) {
         requestData['id'] = widget.expense!['id'];
       }
 

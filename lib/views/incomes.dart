@@ -97,14 +97,16 @@ class _IncomesScreenState extends State<IncomesScreen> {
               children: [
                 SlidableAction(
                   onPressed: (context) {
-                    _showIncomeDetailsDialog(income);
+                    final incomeCopy = Map<String, dynamic>.from(income);
+                    incomeCopy.remove('id');
+                    _showIncomeDetailsDialog(incomeCopy);
                   },
                   foregroundColor: Colors.indigo,
                   backgroundColor: Theme.of(context).brightness == Brightness.light
                       ? Colors.white
                       : Colors.grey.shade900,
-                  icon: Icons.edit,
-                  label: AppLocalizations.of(context)!.edit,
+                  icon: Icons.copy_rounded,
+                  label: AppLocalizations.of(context)!.copy,
                 ),
                 SlidableAction(
                   onPressed: (context) {
@@ -119,11 +121,24 @@ class _IncomesScreenState extends State<IncomesScreen> {
                 ),
               ],
             ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
-              title: _incomeListItemTitle(income),
-              subtitle: _incomeListItemSubtitle(income)
-            ),
+            child: Builder(
+              builder: (context) => InkWell(
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
+                  title: _incomeListItemTitle(income),
+                  subtitle: _incomeListItemSubtitle(income)
+                ),
+                onTap: () {
+                  final controller = Slidable.of(context)!;
+                  final isClosed = controller.actionPaneType.value == ActionPaneType.none;
+                  if (isClosed) {
+                    _showIncomeDetailsDialog(income);
+                  } else {
+                    controller.close();
+                  }
+                },
+              )
+            )
           );
         },
       ));
@@ -242,7 +257,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                           'month': widget.data['month']['id'] ?? ''
                         };
 
-                        if (income != null) {
+                        if (income != null && income['id'] != null) {
                           requestData['id'] = income['id'];
                         }
 

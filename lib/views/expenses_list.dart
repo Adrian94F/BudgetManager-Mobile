@@ -190,14 +190,17 @@ class _ExpensesListViewState extends State<ExpensesListView> {
         children: [
           SlidableAction(
             onPressed: (context) {
-              _showExpenseDetailsDialog(expense);
+              // get copy of expense without id
+              final expenseCopy = Map<String, dynamic>.from(expense);
+              expenseCopy.remove('id');
+              _showExpenseDetailsDialog(expenseCopy);
             },
             foregroundColor: Colors.indigo,
             backgroundColor: Theme.of(context).brightness == Brightness.light
                 ? Colors.white
                 : Colors.grey.shade900,
-            icon: Icons.edit,
-            label: AppLocalizations.of(context)!.edit,
+            icon: Icons.copy_rounded,
+            label: AppLocalizations.of(context)!.copy,
           ),
           SlidableAction(
             onPressed: (context) {
@@ -207,16 +210,29 @@ class _ExpensesListViewState extends State<ExpensesListView> {
             backgroundColor: Theme.of(context).brightness == Brightness.light
                 ? Colors.white
                 : Colors.grey.shade900,
-            icon: Icons.delete,
+            icon: Icons.delete_rounded,
             label: AppLocalizations.of(context)!.remove,
           ),
         ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0.0),
-        title: _expenseListItemTitle(expense),
-        subtitle: _expenseListItemSubtitle(expense)
-      ),
+      child: Builder(
+        builder: (context) => InkWell(
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0.0),
+            title: _expenseListItemTitle(expense),
+            subtitle: _expenseListItemSubtitle(expense)
+          ),
+          onTap: () {
+            final controller = Slidable.of(context)!;
+            final isClosed = controller.actionPaneType.value == ActionPaneType.none;
+            if (isClosed) {
+              _showExpenseDetailsDialog(expense);
+            } else {
+              controller.close();
+            }
+          },
+        )
+      )
     );
   }
 

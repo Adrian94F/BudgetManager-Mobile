@@ -61,5 +61,7 @@
     "login": "Zaloguj się",
     "username": "Nazwa użytkownika",
     "password": "Hasło",
-    "rememberMe": "Zapamiętaj mnie"
+    "rememberMe": "Zapamiętaj mnie",
+    "budgetSettings": "Ustawienia budżetu",
+    "copy": "Kopiuj"
 }

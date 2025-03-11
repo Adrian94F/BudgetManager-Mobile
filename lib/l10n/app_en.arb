@@ -73,5 +73,7 @@
   "login": "Login",
   "username": "Username",
   "password": "Password",
-  "rememberMe": "Remember me"
+  "rememberMe": "Remember me",
+  "budgetSettings": "Budget settings",
+  "copy": "Copy"
 }
