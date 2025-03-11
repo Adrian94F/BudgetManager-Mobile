@@ -174,7 +174,9 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
                     return ChoiceChip(
                       label: Text(category['name']),
                       selected: isSelected,
-                      selectedColor: Colors.blue.shade200,
+                      selectedColor: Theme.of(context).brightness == Brightness.light
+                        ? Colors.indigo.shade100
+                        : Colors.indigo.shade900,
                       onSelected: (_) {
                         setState(() {
                           _categoryId = category['id'];
@@ -198,7 +200,37 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
                 items: widget.categories.map((category) {
                   return DropdownMenuItem<int>(
                     value: category['id'],
-                    child: Text(category['name']),
+                    child: StatefulBuilder(
+                      builder: (context, setState) {
+                        bool isSelected = _categoryId == category['id'];
+                        return Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          decoration: isSelected
+                              ? BoxDecoration(
+                                  color: Theme.of(context).brightness == Brightness.light
+                                    ? Colors.indigo.shade100
+                                    : Colors.indigo.shade900,
+                                  borderRadius: BorderRadius.circular(8),
+                                )
+                              : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 8,
+                            children: [
+                              if (isSelected)
+                                Icon(Icons.check, color: Theme.of(context).brightness == Brightness.light ? Colors.indigo.shade900 : Colors.indigo.shade100),
+                              Text(
+                                category['name'],
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   );
                 }).toList(),
                 onChanged: (int? newValue) {
@@ -206,7 +238,19 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
                     _categoryId = newValue ?? 0;
                   });
                 },
-              ),
+                onTap: () {
+                  setState(() {});
+                },
+                selectedItemBuilder: (BuildContext context) {
+                  return widget.categories.map<Widget>((category) {
+                    return Text(
+                      category['name'],
+                      style: const TextStyle(fontWeight: FontWeight.normal),
+                    );
+                  }).toList();
+                },
+              )
+
             ),
 
             Padding(
