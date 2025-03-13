@@ -144,21 +144,55 @@ class _SummaryScreenState extends State<SummaryScreen> {
   }
 
   Widget _buildSummary(List<dynamic> groups, BuildContext context, String header) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
-      itemCount: groups.length,
-      itemBuilder: (context, index) {
-        final group = groups[index];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (index == 0) _buildMonthHeader(header),
-            if (index == 0) _buildChartPlaceholder(widget.data),
-            _buildGroupTitle(group['name'], context),
-            ..._buildGroupFields(group['fields'])
-          ],
-        );
-      },
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        if (orientation == Orientation.portrait) {
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+            itemCount: groups.length,
+            itemBuilder: (context, index) {
+              final group = groups[index];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (index == 0) _buildMonthHeader(header),
+                  if (index == 0) _buildChartPlaceholder(widget.data),
+                  _buildGroupTitle(group['name'], context),
+                  ..._buildGroupFields(group['fields'])
+                ],
+              );
+            },
+          );
+        } else {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 2,
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+                  itemCount: groups.length,
+                  itemBuilder: (context, index) {
+                    final group = groups[index];
+                    return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (index == 0) _buildMonthHeader(header),
+                          _buildGroupTitle(group['name'], context),
+                          ..._buildGroupFields(group['fields'])
+                        ]
+                    );
+                  }
+                ),
+              ),
+              Expanded(
+                child: _buildChartPlaceholder(widget.data),
+                flex: 3,
+              )
+            ],
+          );
+        }
+      }
     );
   }
 
