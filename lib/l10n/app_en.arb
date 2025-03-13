@@ -55,7 +55,7 @@
   "connection": "Connection",
   "serverUrl": "Server URL",
   "saveServerUrl": "Save server URL",
-  "filteredExpenses": "Filtered expenses",
+  "filteredExpenses": "Filters",
   "expenseDetails": "Expense details",
   "addExpense": "Add expense",
   "incomeDetails": "Income details",

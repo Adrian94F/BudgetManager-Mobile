@@ -11,6 +11,9 @@ class ExpensesTableView extends StatefulWidget {
   final List<dynamic> categories;
   final Map<String, dynamic> month;
   final Future<void> Function() refreshParent;
+  final void Function(ExpensesFilter filter) openFilteredListCallback;
+  final void Function(ScrollCoords coords) saveTableCoords;
+  final ScrollCoords? scrollCoords;
 
   const ExpensesTableView({
     Key? key,
@@ -18,6 +21,9 @@ class ExpensesTableView extends StatefulWidget {
     required this.categories,
     required this.month,
     required this.refreshParent,
+    required this.openFilteredListCallback,
+    required this.saveTableCoords,
+    required this.scrollCoords,
   }) : super(key: key);
 
   @override
@@ -28,13 +34,18 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   final TableViewController _tableViewController = TableViewController();
   final _columnWidth = 45.0;
 
-  double? _savedVerticalScroll;
-  double? _savedHorizontalScroll;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+    if (widget.scrollCoords != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _scrollToXY(widget.scrollCoords!)
+      );
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _scrollToToday());
+    }
   }
 
   void _scrollToToday() {
@@ -51,42 +62,77 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     final todayColumnIndex = today.difference(beginDate).inDays - columnsOffset;
     final scrollOffset = todayColumnIndex * _columnWidth;
 
-    _tableViewController.horizontalScrollController.animateTo(
-      scrollOffset,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    );
+    _scrollToXY(ScrollCoords(x: scrollOffset));
+  }
+
+  void _scrollToXY(ScrollCoords coords) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (coords.x != null) {
+        _tableViewController.horizontalScrollController.animateTo(
+          coords.x!,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+      if (coords.y != null) {
+      _tableViewController.verticalScrollController.animateTo(
+        coords.y!,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+      }
+    });
   }
 
   void _showFilteredExpenses({int? categoryId, DateTime? date}) {
-    setState(() {
-      var filteredExpenses = widget.expenses.where((expense) {
-        final matchesCategory = categoryId == null || expense['category'] == categoryId;
-        final matchesDate = date == null || expense['date'] == DateFormat('yyyy-MM-dd').format(date);
-        return matchesCategory && matchesDate;
-      }).toList();
-
-      _savedVerticalScroll = _tableViewController.verticalScrollController.offset;
-      _savedHorizontalScroll = _tableViewController.horizontalScrollController.offset;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => FilteredExpensesList(
-                expenses: filteredExpenses,
-                categories: widget.categories,
-                filter: ExpensesFilter(
-                    date: date,
-                    category: categoryId,
-                ),
-                monthId: widget.month['id'],
-                refreshParent: widget.refreshParent,
-            )
-        ),
-      ).then((value)=>setState((){
-        widget.refreshParent();
-      }));
-    });
+    final filter = ExpensesFilter(
+      date: date,
+      category: categoryId,
+    );
+    print("Showing filtered expenses");
+    final coordX = _tableViewController.horizontalScrollController.offset;
+    final coordY = _tableViewController.verticalScrollController.offset;
+    widget.saveTableCoords(ScrollCoords(x: coordX, y: coordY));
+    widget.openFilteredListCallback(filter);
+    // setState(() {
+    //   var filteredExpenses = widget.expenses.where((expense) {
+    //     final matchesCategory = categoryId == null || expense['category'] == categoryId;
+    //     final matchesDate = date == null || expense['date'] == DateFormat('yyyy-MM-dd').format(date);
+    //     return matchesCategory && matchesDate;
+    //   }).toList();
+    //
+    //   // ExpensesTableView.scrollCoords = ScrollCoords(
+    //   //   x: _tableViewController.horizontalScrollController.offset,
+    //   //   y: _tableViewController.verticalScrollController.offset
+    //   // );
+    //
+    //   // if (ExpensesTableView.expensesFilter != null) {
+    //   //   ExpensesTableView.expensesFilter = null;
+    //   // } else {
+    //   //   ExpensesTableView.expensesFilter = ExpensesFilter(
+    //   //     date: date,
+    //   //     category: categoryId,
+    //   //   );
+    //   // }
+    //
+    //   // Navigator.push(
+    //   //   context,
+    //   //   MaterialPageRoute(
+    //   //       builder: (context) => FilteredExpensesList(
+    //   //           expenses: filteredExpenses,
+    //   //           categories: widget.categories,
+    //   //           filter: ExpensesFilter(
+    //   //               date: date,
+    //   //               category: categoryId,
+    //   //           ),
+    //   //           monthId: widget.month['id'],
+    //   //           refreshParent: widget.refreshParent,
+    //   //       )
+    //   //   ),
+    //   // ).then((value)=>setState((){
+    //   //   widget.refreshParent();
+    //   // }));
+    // });
   }
 
   Color getBackgroundColor(BuildContext context, DateTime date) {
@@ -94,31 +140,16 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     var isToday = date.isAtSameMomentAs(DateTime(now.year, now.month, now.day));
     var isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
     var bgColor = isToday
-        ? (Theme.of(context).brightness == Brightness.light
+      ? (Theme.of(context).brightness == Brightness.light
         ? Colors.indigo[100]!
         : Colors.grey[800]!)
-        : (isWeekend
+      : (isWeekend
         ? Theme.of(context).brightness == Brightness.light
-        ? Colors.indigo[50]!
-        : Colors.grey[900]!
+          ? Colors.indigo[50]!
+          : Colors.grey[900]!
         : Colors.transparent);
     return bgColor;
   }
-
-  // void _scrollToXY({double? x, double? y}) {
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     _tableViewController.horizontalScrollController.animateTo(
-  //       _savedHorizontalScroll ?? 0,
-  //       duration: const Duration(milliseconds: 500),
-  //       curve: Curves.easeInOut,
-  //     );
-  //     _tableViewController.verticalScrollController.animateTo(
-  //       _savedVerticalScroll ?? 0,
-  //       duration: const Duration(milliseconds: 500),
-  //       curve: Curves.easeInOut,
-  //     );
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -261,4 +292,10 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       ],
     );
   }
+}
+
+class ScrollCoords {
+  late double? x;
+  late double? y;
+  ScrollCoords({this.x, this.y});
 }

@@ -14,7 +14,7 @@ class ExpensesListView extends StatefulWidget {
   final int monthId;
   ExpensesFilter filter = ExpensesFilter();
 
-  ExpensesListView({Key? key, required this.expenses, required this.categories, required ExpensesFilter filter, required this.monthId, required this.refreshParent}) : super(key: key);
+  ExpensesListView({Key? key, required this.expenses, required this.categories, required this.filter, required this.monthId, required this.refreshParent}) : super(key: key);
   ExpensesListView.filtered({Key? key, required this.expenses, required this.categories, required this.filter, required this.monthId, required this.refreshParent}) : super(key: key);
 
   @override
@@ -253,6 +253,24 @@ class _ExpensesListViewState extends State<ExpensesListView> {
 
   @override
   Widget build(BuildContext context) {
+    final filterTitleParts =
+    "${AppLocalizations.of(context)!.filteredExpenses}: ${[
+      if (widget.filter.date != null)
+        DateFormat("d.MM.yyyy").format(widget.filter.date!),
+      if (widget.filter.category != null)
+        _getCategoryName(widget.filter.category!)
+    ].join(", ")}";
+
+    final filteredExpenses = widget.expenses.where((expense) {
+      if (widget.filter.date != null && DateTime.parse(expense['date']).difference(widget.filter.date!).inDays != 0) {
+        return false;
+      }
+      if (widget.filter.category != null && expense['category'] != widget.filter.category) {
+        return false;
+      }
+      return true;
+    }).toList();
+
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -261,13 +279,22 @@ class _ExpensesListViewState extends State<ExpensesListView> {
         label: Text(AppLocalizations.of(context)!.add),
         icon: const Icon(Icons.add),
       ),
+      appBar: (widget.filter.date != null || widget.filter.category != null)
+        ? AppBar(
+            title: Text(
+              filterTitleParts,
+              style: const TextStyle(fontSize: 16),
+            ),
+            shadowColor: Theme.of(context).colorScheme.shadow,
+          )
+        : null,
       body: ListView.builder(
         controller: _scrollController,
-        itemCount: widget.expenses.length,
+        itemCount: filteredExpenses.length,
         padding: const EdgeInsets.only(bottom: 80),
         itemBuilder: (context, index) {
-          final expense = widget.expenses[index];
-          bool showDateHeader = (index == 0 || widget.expenses[index - 1]['date'] != expense['date']) && widget.filter.date == null;
+          final expense = filteredExpenses[index];
+          bool showDateHeader = (index == 0 || filteredExpenses[index - 1]['date'] != expense['date']) && widget.filter.date == null;
 
           return Column(
             key: _itemKeys[index],
@@ -379,6 +406,11 @@ class _ExpensesListViewState extends State<ExpensesListView> {
         );
       },
     );
+  }
+
+  void _showFilterDialog() {
+    // show dialog with category selector and date selector
+
   }
 }
 

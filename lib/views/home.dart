@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   var _currentIndex = 0;
   var _monthRelated = true;
   final _monthRelatedViews = 4;
-  late List<Widget> _screens;
+  late List<dynamic> _screens;
   final List<String> _screenTitles = [
     "Hello!",
     "Expenses list",
@@ -36,6 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
     "Settings",
   ];
   late Future<Map<String, dynamic>> _data;
+  Map<String, dynamic> _loadedData = {};
+  ExpensesFilter _filter = ExpensesFilter();
+  ScrollCoords? _savedCoords;
   int? _currentMonthId;
   // Widget? _customAction;
 
@@ -63,19 +66,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _setScreens(dynamic data) {
-    final expenses = data['expenses'] as List<dynamic>;
-    final categories = data['categories'] as List<dynamic>;
-    final month = data['month'] as Map<String, dynamic>;
+  void _setScreens() {
+    final expenses = _loadedData['expenses'] as List<dynamic>;
+    final categories = _loadedData['categories'] as List<dynamic>;
+    final month = _loadedData['month'] as Map<String, dynamic>;
 
     _screens = [
       SummaryScreen(
-        data: data
+        data: _loadedData
       ),
       ExpensesListView(
         expenses: expenses,
         categories: categories,
-        filter: ExpensesFilter(),
+        filter: _filter,
         monthId: month['id'],
         refreshParent: _handleRefresh
       ),
@@ -83,16 +86,34 @@ class _HomeScreenState extends State<HomeScreen> {
         expenses: expenses,
         categories: categories,
         month: month,
-        refreshParent: _handleRefresh
+        refreshParent: _handleRefresh,
+        openFilteredListCallback: openFilteredExpensesList,
+        saveTableCoords: saveTableCoords,
+        scrollCoords: _savedCoords,
       ),
       IncomesScreen(
-        data: data,
+        data: _loadedData,
         refreshParent: _handleRefresh
       ),
       SettingsScreen(
         setThemeMode: widget.setThemeMode
       ),
     ];
+  }
+
+  void openFilteredExpensesList(ExpensesFilter filter) {
+    print("Opening filtered expenses list with filter: $filter");
+    setState(() {
+      _filter = filter;
+      _setScreens();
+      _currentIndex = 1;
+    });
+  }
+
+  void saveTableCoords(ScrollCoords coords) {
+    setState(() {
+      _savedCoords = coords;
+    });
   }
 
   void _fetchData() {
@@ -134,11 +155,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
             );
           } else {
-            var data = snapshot.data;
-            var months = data!['months'] as List<dynamic>;
-            _setScreens(data);
+            _loadedData = snapshot.data!;
+            var months = _loadedData['months'] as List<dynamic>;
+            _setScreens();
 
-            var message = data['message'];
+            var message = _loadedData['message'];
             var body = message == null
               ? _screens[_currentIndex]
               : Center(
@@ -151,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             return Scaffold(
               body: RefreshIndicator(
-                onRefresh: () => _handleRefresh(),
+                onRefresh: _handleRefreshHard,
                 child: body is Center
                     ? ListView(
                         children: [body],
@@ -179,12 +200,21 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _handleRefreshHard() async {
+    setState(() {
+      _filter = ExpensesFilter();
+      _savedCoords = null;
+      _fetchData();
+    });
+  }
+
   BottomNavigationBar _bottomNavigation() {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       currentIndex: _currentIndex,
       onTap: (index) {
         setState(() {
+          _filter = ExpensesFilter();
           _monthRelated = index < _monthRelatedViews;
           // _customAction = null;
           _currentIndex = index;
@@ -229,6 +259,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _selectMonth(int monthId) {
     setState(() {
       _currentMonthId = monthId;
+      _savedCoords = null;
+      _filter = ExpensesFilter();
       _fetchData();
     });
   }
