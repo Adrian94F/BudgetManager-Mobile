@@ -1,3 +1,4 @@
+import 'package:budget_manager/views/budget_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:budget_manager/services/auth_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -32,6 +33,17 @@ class SettingsScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => AppSettingsScreen(setThemeMode: setThemeMode,)),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: Text(AppLocalizations.of(context)!.budgetSettings),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const BudgetSettings()),
                 );
               },
             ),
