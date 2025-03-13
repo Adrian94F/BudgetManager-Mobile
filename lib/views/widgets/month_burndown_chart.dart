@@ -43,7 +43,9 @@ class SimpleBurndownChart extends StatelessWidget {
           renderSpec: NoneRenderSpec(),
         );
 
-    var widgetWidth = MediaQuery.of(context).size.width;
+    var widgetWidth = MediaQuery.of(context).orientation == Orientation.portrait
+        ? MediaQuery.of(context).size.width
+        : MediaQuery.of(context).size.width * 3 / 5;
     var daysNumber = endDate.difference(startDate).inDays + 2;
     var segmentWidth = widgetWidth / daysNumber;
 
