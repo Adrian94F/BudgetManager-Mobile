@@ -115,10 +115,10 @@ class SimpleBurndownChart extends StatelessWidget {
     var startDateDecreased = startDate.subtract(const Duration(days: 1));
     var endDateIncreased = endDate.add(const Duration(days: 1));
     final DateFormat formatter = DateFormat('d.MM');
-    var counter = 0;
     for (var date = startDateDecreased;
          date.isBefore(endDateIncreased);
-         date = date.add(const Duration(days: 1)), counter++) {
+         date = date.add(const Duration(days: 1))) {
+      date = DateTime(date.year, date.month, date.day);  // remove hours etc. to compare dates (on summertime change)
       var yesterdaySum = burndownData[burndownData.length - 1].sum;
       var dateExpenses = dailyExpensesSums[date] ?? 0.0;
       var dateMonthlyExpenses = monthlyExpensesSums[date] ?? 0.0;
