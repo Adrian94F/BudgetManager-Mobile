@@ -186,8 +186,8 @@ class _SummaryScreenState extends State<SummaryScreen> {
                 ),
               ),
               Expanded(
-                child: _buildChartPlaceholder(widget.data),
                 flex: 3,
+                child: _buildChartPlaceholder(widget.data),
               )
             ],
           );
