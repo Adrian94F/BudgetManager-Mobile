@@ -75,5 +75,6 @@
   "password": "Password",
   "rememberMe": "Remember me",
   "budgetSettings": "Budget settings",
-  "copy": "Copy"
+  "copy": "Copy",
+  "statistics": "Statistics"
 }

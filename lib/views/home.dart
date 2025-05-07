@@ -10,6 +10,7 @@ import 'expenses_table.dart';
 import 'incomes.dart';
 import 'settings.dart';
 import 'summary.dart';
+import 'statistics.dart';
 
 class HomeScreen extends StatefulWidget {
   final Future<void> Function(String) setThemeMode;
@@ -33,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     "Expenses list",
     "Expenses table",
     "Incomes",
+    "Statistics",
     "Settings",
   ];
   late Future<Map<String, dynamic>> _data;
@@ -61,7 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _screenTitles[1] = AppLocalizations.of(context)!.expensesList;
         _screenTitles[2] = AppLocalizations.of(context)!.expensesTable;
         _screenTitles[3] = AppLocalizations.of(context)!.incomes;
-        _screenTitles[4] = AppLocalizations.of(context)!.settings;
+        _screenTitles[4] = AppLocalizations.of(context)!.statistics;
+        _screenTitles[5] = AppLocalizations.of(context)!.settings;
       });
     }
   }
@@ -95,9 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
         data: _loadedData,
         refreshParent: _handleRefresh
       ),
+      StatisticsScreen(),
       SettingsScreen(
         setThemeMode: widget.setThemeMode
-      ),
+      )
     ];
   }
 
@@ -238,6 +242,10 @@ class _HomeScreenState extends State<HomeScreen> {
         BottomNavigationBarItem(
           icon: const Icon(Icons.download_rounded),
           label: AppLocalizations.of(context)!.incomes,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.bar_chart_rounded),
+          label: AppLocalizations.of(context)!.statistics,
         ),
         BottomNavigationBarItem(
           icon: const Icon(Icons.settings_rounded),

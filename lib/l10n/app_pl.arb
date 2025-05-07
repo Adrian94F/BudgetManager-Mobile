@@ -63,5 +63,6 @@
     "password": "Hasło",
     "rememberMe": "Zapamiętaj mnie",
     "budgetSettings": "Ustawienia budżetu",
-    "copy": "Kopiuj"
+    "copy": "Kopiuj",
+    "statistics": "Statystyki"
 }
