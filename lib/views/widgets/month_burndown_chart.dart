@@ -104,7 +104,7 @@ class SimpleBurndownChart extends StatelessWidget {
     var idealBurndownData = [
       BudgetBurndown("start", incomesSum - monthlyExpensesSum),
     ];
-    final idealDailyExpensesSum = (incomesSum - monthlyExpensesSum) / (endDate.difference(startDate).inDays + 2);
+    final idealDailyExpensesSum = (incomesSum - monthlyExpensesSum) / (endDate.difference(startDate).inDays + 1);
     var dailyExpensesData = [
       BudgetBurndown("start", 0),
     ];
@@ -112,10 +112,9 @@ class SimpleBurndownChart extends StatelessWidget {
       BudgetBurndown("start", 0),
     ];
 
-    var startDateDecreased = startDate.subtract(const Duration(days: 1));
     var endDateIncreased = endDate.add(const Duration(days: 1));
     final DateFormat formatter = DateFormat('d.MM');
-    for (var date = startDateDecreased;
+    for (var date = startDate;
          date.isBefore(endDateIncreased);
          date = date.add(const Duration(days: 1))) {
       date = DateTime(date.year, date.month, date.day);  // remove hours etc. to compare dates (on summertime change)
