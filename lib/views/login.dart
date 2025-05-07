@@ -51,6 +51,10 @@ class _LoginScreenState extends State<LoginScreen> {
       await _storage.write(key: "login", value: _usernameController.text);
       await _storage.write(key: "password", value: _passwordController.text);
     }
+    else {
+      _storage.delete(key: "login");
+      _storage.delete(key: "password");
+    }
     try {
       await _authService.login(
         _usernameController.text,

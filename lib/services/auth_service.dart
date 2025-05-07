@@ -49,6 +49,14 @@ class AuthService {
     }
   }
 
+  Future<void> reLogin() async {
+    final savedUsername = await storage.read(key: "username");
+    final savedPassword = await storage.read(key: "password");
+    if (savedPassword != null && savedUsername != null) {
+      await login(savedUsername, savedPassword);
+    }
+  }
+
   Future<bool> isAuthenticated() async {
     final accessToken = await storage.read(key: "access_token");
     return accessToken != null;
@@ -68,11 +76,24 @@ class AuthService {
     if (response.statusCode == 200) {
       return json.decode(utf8.decode(response.bodyBytes));
     } else if (response.statusCode == 401) {
-      await refreshToken();
-      return get(url);
-    } else {
-      throw Exception("Failed to fetch data");
+      final responseBody = json.decode(utf8.decode(response.bodyBytes));
+      if (responseBody["code"] == 'token_not_valid') {
+        final messages = responseBody["messages"];
+        for (final message in messages) {
+          switch (message["token_class"]) {
+            case "AccessToken":
+              await refreshToken();
+              return get(url);
+            case "RefreshToken":
+              await reLogin();
+              return get(url);
+            default:
+              throw Exception("Unknown token class: ${message["token_class"]}");
+          }
+        }
+      }
     }
+    throw Exception("Failed to fetch data");
   }
 
   Future<Map<String, dynamic>> post(String url, Map<String, dynamic> body) async {
