@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     "Expenses list",
     "Expenses table",
     "Incomes",
-    "Statistics",
+    // "Statistics",
     "Settings",
   ];
   late Future<Map<String, dynamic>> _data;
@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _screenTitles[1] = AppLocalizations.of(context)!.expensesList;
         _screenTitles[2] = AppLocalizations.of(context)!.expensesTable;
         _screenTitles[3] = AppLocalizations.of(context)!.incomes;
-        _screenTitles[4] = AppLocalizations.of(context)!.statistics;
+        // _screenTitles[4] = AppLocalizations.of(context)!.statistics;
         _screenTitles[5] = AppLocalizations.of(context)!.settings;
       });
     }
@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
         data: _loadedData,
         refreshParent: _handleRefresh
       ),
-      StatisticsScreen(),
+      // StatisticsScreen(),
       SettingsScreen(
         setThemeMode: widget.setThemeMode
       )
@@ -212,42 +212,39 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  BottomNavigationBar _bottomNavigation() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      currentIndex: _currentIndex,
-      onTap: (index) {
+  NavigationBar _bottomNavigation() {
+    return NavigationBar(
+      selectedIndex: _currentIndex,
+      onDestinationSelected: (index) {
         setState(() {
           _filter = ExpensesFilter();
           _monthRelated = index < _monthRelatedViews;
-          // _customAction = null;
           _currentIndex = index;
         });
       },
-      // showSelectedLabels: false,
-      // showUnselectedLabels: false,
-      items: [
-        BottomNavigationBarItem(
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      destinations: [
+        NavigationDestination(
           icon: const Icon(Icons.home_rounded),
           label: AppLocalizations.of(context)!.summary,
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           icon: const Icon(Icons.table_rows_rounded),
           label: AppLocalizations.of(context)!.expensesListShort,
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           icon: const Icon(Icons.grid_view_rounded),
           label: AppLocalizations.of(context)!.expensesTableShort,
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           icon: const Icon(Icons.download_rounded),
           label: AppLocalizations.of(context)!.incomes,
         ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.bar_chart_rounded),
-          label: AppLocalizations.of(context)!.statistics,
-        ),
-        BottomNavigationBarItem(
+        // NavigationDestination(
+        //   icon: const Icon(Icons.bar_chart_rounded),
+        //   label: AppLocalizations.of(context)!.statistics,
+        // ),
+        NavigationDestination(
           icon: const Icon(Icons.settings_rounded),
           label: AppLocalizations.of(context)!.settings,
         ),
