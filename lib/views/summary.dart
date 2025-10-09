@@ -22,8 +22,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
     var monthDates = startDate.year == endDate.year
         ? "${DateFormat("d.MM").format(startDate)}-${DateFormat("d.MM.yyyy").format(endDate)}"
         : "${DateFormat("d.MM.yyyy").format(startDate)}-${DateFormat("d.MM.yyyy").format(endDate)}";
-    var groups = [];
 
+    // Lista, która będzie przechowywać wszystkie elementy widoku (nagłówki i pola)
+    List<Widget> listItems = [];
+
+    // --- OBLICZENIA ---
     var incomes = widget.data['incomes'] as List<dynamic>;
     var salarySum = 0.0;
     var otherIncomesSum = 0.0;
@@ -36,14 +39,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
       }
     }
     var incomesSum = salarySum + otherIncomesSum;
-    groups.add({
-      "name": AppLocalizations.of(context)!.incomes,
-      "fields": [
-        {"name": AppLocalizations.of(context)!.salary, "value": salarySum, "type": "currency"},
-        {"name": AppLocalizations.of(context)!.otherIncome, "value": otherIncomesSum, "type": "currency"},
-        {"name": AppLocalizations.of(context)!.total, "value": incomesSum, "type": "currency"},
-      ],
-    });
 
     var expenses = widget.data['expenses'] as List<dynamic>;
     var monthlyExpensesSum = 0.0;
@@ -69,59 +64,136 @@ class _SummaryScreenState extends State<SummaryScreen> {
       }
     }
     var expensesSum = monthlyExpensesSum + regularExpensesSum;
-    groups.add({
-      "name": AppLocalizations.of(context)!.expenses,
-      "fields": [
-        {"name": AppLocalizations.of(context)!.dailyExpenses, "value": regularExpensesSum, "type": "currency"},
-        {"name": AppLocalizations.of(context)!.recurrentExpenses, "value": monthlyExpensesSum, "type": "currency"},
-        {"name": AppLocalizations.of(context)!.total, "value": expensesSum, "type": "currency"}
-      ]
-    });
 
-    groups.add({
-      "name": AppLocalizations.of(context)!.balance,
-      "fields": [
-        {"name": AppLocalizations.of(context)!.incomes, "value": incomesSum, "type": "currency"},
-        {"name": AppLocalizations.of(context)!.expenses, "value": expensesSum, "type": "currency"},
-        {"name": AppLocalizations.of(context)!.balance, "value": incomesSum - expensesSum, "type": "currency"}
-      ]
-    });
+    // --- BUDOWANIE WIDOKU ---
+    // Nagłówek miesiąca i wykres
+    listItems.add(_buildMonthHeader(monthDates));
+    listItems.add(_buildChartPlaceholder(widget.data));
 
-    if (DateTime.now().isAfter(startDate) && DateTime.now().isBefore(endDate.add(const Duration(days: 1)))) {  // handle now in the last day of month
-      var daysLeft = endDate.difference(DateTime.now()).inDays + 2;  // till the end of day
-
-      var balanceBeforeToday = incomesSum - monthlyExpensesSum - dailyExpensesBeforeTodaySum;
-      var maxDailyExpenses = balanceBeforeToday / daysLeft;
-      var todayExpensesPercent = (todayExpensesSum / maxDailyExpenses * 100).round();
-
-      groups.add({
-        "name": AppLocalizations.of(context)!.currentMonth,
-        "fields": [
-          {"name": AppLocalizations.of(context)!.daysLeft, "value": daysLeft},
-          if (balanceBeforeToday > 0)
-            {"name": AppLocalizations.of(context)!.maxDailyExpense, "value": maxDailyExpenses, "type": "currency"},
-          {"name": AppLocalizations.of(context)!.spentToday, "value": todayExpensesSum, "type": "currency"},
-          if (balanceBeforeToday > 0)
-           {"name": AppLocalizations.of(context)!.spentTodayPercent, "value": todayExpensesPercent, "type": "percent"}
-        ]
-      });
+    // Sekcja PRZYCHODY
+    if (salarySum > 0 && otherIncomesSum == 0) {
+      // Tylko pensja
+      listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.salary, context, amount: salarySum));
+    } else if (salarySum == 0 && otherIncomesSum > 0) {
+      // Tylko inne przychody
+      listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.otherIncome, context, amount: otherIncomesSum));
+    } else {
+      // Oba rodzaje przychodów lub żadne
+      listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.incomes, context, amount: incomesSum));
+      if (salarySum > 0 && otherIncomesSum > 0) {
+        listItems.add(_buildFieldRow(AppLocalizations.of(context)!.salary, salarySum, type: 'currency'));
+        listItems.add(_buildFieldRow(AppLocalizations.of(context)!.otherIncome, otherIncomesSum, type: 'currency'));
+      }
     }
 
-    return _buildSummary(groups, context, monthDates);
+
+    // Sekcja WYDATKI
+    if (regularExpensesSum > 0 && monthlyExpensesSum == 0) {
+      // Tylko wydatki codzienne
+      listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.dailyExpenses, context, amount: regularExpensesSum));
+    } else if (regularExpensesSum == 0 && monthlyExpensesSum > 0) {
+      // Tylko wydatki comiesięczne
+      listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.recurrentExpenses, context, amount: monthlyExpensesSum));
+    } else {
+      // Oba rodzaje wydatków lub żadne
+      listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.expenses, context, amount: expensesSum));
+      if (regularExpensesSum > 0 && monthlyExpensesSum > 0) {
+        listItems.add(_buildFieldRow(AppLocalizations.of(context)!.dailyExpenses, regularExpensesSum, type: 'currency'));
+        listItems.add(_buildFieldRow(AppLocalizations.of(context)!.recurrentExpenses, monthlyExpensesSum, type: 'currency'));
+      }
+    }
+
+    // Sekcja BILANS
+    listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.balance, context, amount: incomesSum - expensesSum));
+
+
+    // Sekcja AKTUALNY MIESIĄC (jeśli dotyczy)
+    if (DateTime.now().isAfter(startDate) && DateTime.now().isBefore(endDate.add(const Duration(days: 1)))) {
+      listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.currentMonth, context));
+
+      var daysLeft = endDate.difference(DateTime.now()).inDays + 1;
+      var balanceBeforeToday = incomesSum - monthlyExpensesSum - dailyExpensesBeforeTodaySum;
+
+      var maxDailyExpenses = (daysLeft > 0) ? balanceBeforeToday / daysLeft : 0.0;
+      var todayExpensesPercent = (maxDailyExpenses > 0) ? (todayExpensesSum / maxDailyExpenses * 100) : 0.0;
+
+      listItems.add(_buildFieldRow(AppLocalizations.of(context)!.daysLeft, daysLeft));
+
+      if (balanceBeforeToday > 0) {
+        listItems.add(_buildFieldRow(AppLocalizations.of(context)!.maxDailyExpense, maxDailyExpenses, type: 'currency'));
+      }
+
+      String spentTodayValue = Formatters.currencyFormatter.format(todayExpensesSum);
+      if (balanceBeforeToday > 0 && maxDailyExpenses > 0) {
+        spentTodayValue += " (${todayExpensesPercent.round()}%)";
+      }
+      listItems.add(_buildFieldRow(AppLocalizations.of(context)!.spentToday, spentTodayValue, type: 'text'));
+    }
+
+    return _buildNewSummary(listItems);
+  }
+
+  // Nowa metoda budująca cały widok
+  Widget _buildNewSummary(List<Widget> items) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        return items[index];
+      },
+    );
+  }
+
+  // Pomocnicza metoda do tworzenia wiersza z polem
+  Widget _buildFieldRow(String name, dynamic value, {String type = 'integer', bool isTotal = false}) {
+    Widget valueWidget;
+    switch (type) {
+      case 'currency':
+        valueWidget = Text(
+          Formatters.currencyFormatter.format(value),
+          style: TextStyle(fontSize: 16.0, fontWeight: isTotal ? FontWeight.bold : FontWeight.w500),
+        );
+        break;
+      case 'text':
+        valueWidget = Text(
+          value.toString(),
+          style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+        );
+        break;
+      default:
+        valueWidget = Text(
+          Formatters.integerFormatter.format(value),
+          style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+        );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 24.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            name,
+            style: TextStyle(fontSize: 16.0, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal),
+          ),
+          valueWidget,
+        ],
+      ),
+    );
   }
 
   Widget _buildChartPlaceholder(Map<String, dynamic> data) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
       child: AspectRatio(
-        aspectRatio: 2,
-        child: SimpleBurndownChart(
-          incomes: data['incomes'],
-          expenses: data['expenses'],
-          startDate: DateTime.parse(data['month']['start_date']),
-          endDate: DateTime.parse(data['month']['end_date'])
-        )
+          aspectRatio: 2,
+          child: SimpleBurndownChart(
+              incomes: data['incomes'],
+              expenses: data['expenses'],
+              startDate: DateTime.parse(data['month']['start_date']),
+              endDate: DateTime.parse(data['month']['end_date'])
+          )
       ),
     );
   }
@@ -143,119 +215,24 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 
-  Widget _buildSummary(List<dynamic> groups, BuildContext context, String header) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        if (orientation == Orientation.portrait) {
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
-            itemCount: groups.length,
-            itemBuilder: (context, index) {
-              final group = groups[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (index == 0) _buildMonthHeader(header),
-                  if (index == 0) _buildChartPlaceholder(widget.data),
-                  _buildGroupTitle(group['name'], context),
-                  ..._buildGroupFields(group['fields'])
-                ],
-              );
-            },
-          );
-        } else {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 2,
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
-                  itemCount: groups.length,
-                  itemBuilder: (context, index) {
-                    final group = groups[index];
-                    return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (index == 0) _buildMonthHeader(header),
-                          _buildGroupTitle(group['name'], context),
-                          ..._buildGroupFields(group['fields'])
-                        ]
-                    );
-                  }
-                ),
-              ),
-              Expanded(
-                flex: 3,
-                child: _buildChartPlaceholder(widget.data),
-              )
-            ],
-          );
-        }
-      }
+  Widget _buildGroupTitle(String name, BuildContext context, {double? amount}) {
+    final titleStyle = TextStyle(
+      fontSize: 16.0,
+      fontWeight: FontWeight.bold,
+      color: Theme.of(context).colorScheme.primary,
+      letterSpacing: 0.5,
     );
-  }
 
-  Widget _buildGroupTitle(String name, BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 2.0),
-      child: Text(
-        name,
-        style: TextStyle(
-          fontSize: 20.0,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Theme.of(context).primaryColorLight
-              : Theme.of(context).primaryColor,
-        ),
+      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 22.0, 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(name.toUpperCase(), style: titleStyle),
+          if (amount != null)
+            Text(Formatters.currencyFormatter.format(amount), style: titleStyle),
+        ],
       ),
     );
-  }
-
-  List<Widget> _buildGroupFields(List<dynamic> fields) {
-    return fields.map((field) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 24.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              field['name'],
-              style: const TextStyle(fontSize: 16.0),
-            ),
-            _buildFieldValue(field),
-          ],
-        ),
-      );
-    }).toList();
-  }
-
-  Widget _buildFieldValue(Map<String, dynamic> field) {
-    if (!field.containsKey('type')) {
-      return Text(
-        Formatters.integerFormatter.format(field['value']),
-        style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
-      );
-    }
-
-    switch (field['type']) {
-      case 'currency':
-        return Text(
-          Formatters.currencyFormatter.format(field['value']),
-          style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
-        );
-      case 'percent':
-        return Text(
-          "${Formatters.integerFormatter.format(field['value'])}%",
-          style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
-        );
-      case 'text':
-        return Text(
-          field['value'],
-          style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
-        );
-      default:
-        return const SizedBox();
-    }
   }
 }
