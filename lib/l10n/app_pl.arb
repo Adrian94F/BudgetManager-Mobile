@@ -59,6 +59,7 @@
     "category": "Kategoria",
     "quickSelectCategory": "Sugerowane kategorie",
     "login": "Zaloguj się",
+    "loginFailed": "Logowanie nie powiodło się",
     "username": "Nazwa użytkownika",
     "password": "Hasło",
     "rememberMe": "Zapamiętaj mnie",

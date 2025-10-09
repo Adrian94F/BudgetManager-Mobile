@@ -71,6 +71,7 @@
   "category": "Category",
   "quickSelectCategory": "Quick select category",
   "login": "Login",
+  "loginFailed": "Login failed.",
   "username": "Username",
   "password": "Password",
   "rememberMe": "Remember me",
