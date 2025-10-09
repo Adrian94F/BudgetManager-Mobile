@@ -10,7 +10,7 @@ import 'expenses_table.dart';
 import 'incomes.dart';
 import 'settings.dart';
 import 'summary.dart';
-import 'statistics.dart';
+// import 'statistics.dart';
 
 class HomeScreen extends StatefulWidget {
   final Future<void> Function(String) setThemeMode;
@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _screenTitles[2] = AppLocalizations.of(context)!.expensesTable;
         _screenTitles[3] = AppLocalizations.of(context)!.incomes;
         // _screenTitles[4] = AppLocalizations.of(context)!.statistics;
-        _screenTitles[5] = AppLocalizations.of(context)!.settings;
+        _screenTitles[4] = AppLocalizations.of(context)!.settings;
       });
     }
   }
@@ -251,15 +251,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
-
-  // List<Widget> _customActionsMenu() {
-  //   return _customAction == null
-  //       ? []
-  //       : [
-  //           _customAction!,
-  //           const SizedBox(width: 10)
-  //         ];
-  // }
 
   void _selectMonth(int monthId) {
     setState(() {

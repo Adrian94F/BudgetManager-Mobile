@@ -23,10 +23,8 @@ class _SummaryScreenState extends State<SummaryScreen> {
         ? "${DateFormat("d.MM").format(startDate)}-${DateFormat("d.MM.yyyy").format(endDate)}"
         : "${DateFormat("d.MM.yyyy").format(startDate)}-${DateFormat("d.MM.yyyy").format(endDate)}";
 
-    // Lista, która będzie przechowywać wszystkie elementy widoku (nagłówki i pola)
     List<Widget> listItems = [];
 
-    // --- OBLICZENIA ---
     var incomes = widget.data['incomes'] as List<dynamic>;
     var salarySum = 0.0;
     var otherIncomesSum = 0.0;
@@ -65,20 +63,14 @@ class _SummaryScreenState extends State<SummaryScreen> {
     }
     var expensesSum = monthlyExpensesSum + regularExpensesSum;
 
-    // --- BUDOWANIE WIDOKU ---
-    // Nagłówek miesiąca i wykres
     listItems.add(_buildMonthHeader(monthDates));
-    listItems.add(_buildChartPlaceholder(widget.data));
+    // listItems.add(_buildChartPlaceholder(widget.data));
 
-    // Sekcja PRZYCHODY
     if (salarySum > 0 && otherIncomesSum == 0) {
-      // Tylko pensja
       listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.salary, context, amount: salarySum));
     } else if (salarySum == 0 && otherIncomesSum > 0) {
-      // Tylko inne przychody
       listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.otherIncome, context, amount: otherIncomesSum));
     } else {
-      // Oba rodzaje przychodów lub żadne
       listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.incomes, context, amount: incomesSum));
       if (salarySum > 0 && otherIncomesSum > 0) {
         listItems.add(_buildFieldRow(AppLocalizations.of(context)!.salary, salarySum, type: 'currency'));
@@ -86,16 +78,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
       }
     }
 
-
-    // Sekcja WYDATKI
     if (regularExpensesSum > 0 && monthlyExpensesSum == 0) {
-      // Tylko wydatki codzienne
       listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.dailyExpenses, context, amount: regularExpensesSum));
     } else if (regularExpensesSum == 0 && monthlyExpensesSum > 0) {
-      // Tylko wydatki comiesięczne
       listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.recurrentExpenses, context, amount: monthlyExpensesSum));
     } else {
-      // Oba rodzaje wydatków lub żadne
       listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.expenses, context, amount: expensesSum));
       if (regularExpensesSum > 0 && monthlyExpensesSum > 0) {
         listItems.add(_buildFieldRow(AppLocalizations.of(context)!.dailyExpenses, regularExpensesSum, type: 'currency'));
@@ -103,11 +90,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
       }
     }
 
-    // Sekcja BILANS
     listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.balance, context, amount: incomesSum - expensesSum));
 
 
-    // Sekcja AKTUALNY MIESIĄC (jeśli dotyczy)
     if (DateTime.now().isAfter(startDate) && DateTime.now().isBefore(endDate.add(const Duration(days: 1)))) {
       listItems.add(_buildGroupTitle(AppLocalizations.of(context)!.currentMonth, context));
 
@@ -133,7 +118,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
     return _buildNewSummary(listItems);
   }
 
-  // Nowa metoda budująca cały widok
   Widget _buildNewSummary(List<Widget> items) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
@@ -144,7 +128,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 
-  // Pomocnicza metoda do tworzenia wiersza z polem
   Widget _buildFieldRow(String name, dynamic value, {String type = 'integer', bool isTotal = false}) {
     Widget valueWidget;
     switch (type) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
+import '../tools/fading_text.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ExpenseDetails extends StatefulWidget {
@@ -42,7 +43,7 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
       text: widget.expense?['date'] ?? DateFormat("yyyy-MM-dd").format(widget.preferredDate ?? DateTime.now()),
     );
     _commentController = TextEditingController(text: widget.expense?['comment'] ?? '');
-    _categoryId = widget.expense?['category'] ?? widget.preferredCategoryId ?? (widget.topCategories != null ? widget.topCategories![0] : widget.categories.first['id']);
+    _categoryId = widget.expense?['category'] ?? widget.preferredCategoryId ?? (widget.topCategories != null && widget.topCategories!.isNotEmpty ? widget.topCategories![0] : widget.categories.first['id']);
     _isRecurrent = widget.expense?['is_monthly'] ?? false;
   }
 
@@ -55,6 +56,7 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
   }
 
   void _saveExpense() async {
+    // Basic validation
     if (_valueController.text.isEmpty || _dateController.text.isEmpty) {
       setState(() {
         _errorMessage = AppLocalizations.of(context)!.pleaseFillAllFields;
@@ -70,7 +72,7 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
     try {
       final authService = AuthService();
       final requestData = {
-        'value': double.tryParse(_valueController.text) ?? 0.0,
+        'value': double.tryParse(_valueController.text.replaceAll(',', '.')) ?? 0.0, // Handle both comma and dot
         'date': _dateController.text,
         'is_monthly': _isRecurrent,
         'comment': _commentController.text,
@@ -83,21 +85,24 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
       }
 
       await authService.post("expense/", requestData);
-      Navigator.pop(context, true);
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = AppLocalizations.of(context)!.errorSavingData;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = AppLocalizations.of(context)!.errorSavingData;
+        });
+      }
     }
   }
 
   Future<void> _selectDate() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: widget.expense != null
-          ? DateTime.parse(widget.expense!['date'])
-          : widget.preferredDate ?? DateTime.now(),
+      initialDate: DateTime.tryParse(_dateController.text) ?? widget.preferredDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
@@ -113,6 +118,8 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
     List<dynamic> topCategoriesList = widget.categories
         .where((c) => widget.topCategories?.contains(c['id']) ?? false)
         .toList();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -123,176 +130,157 @@ class _ExpenseDetailsState extends State<ExpenseDetails> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-              ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: TextField(
-                controller: _valueController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.amount,
-                  border: const OutlineInputBorder(),
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: Text(
+                  _errorMessage!,
+                  style: TextStyle(color: colorScheme.onErrorContainer, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
+            const SizedBox(height: 16),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: TextField(
-                controller: _dateController,
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.date,
-                  suffixIcon: const Icon(Icons.calendar_today),
-                  border: const OutlineInputBorder(),
-                ),
-                onTap: _selectDate,
-              )
+            // Amount Field
+            TextField(
+              controller: _valueController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.amount,
+                prefixIcon: const Icon(Icons.paid_outlined),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              ),
             ),
+            const SizedBox(height: 16),
 
+            // Date Field
+            TextField(
+              controller: _dateController,
+              readOnly: true,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.date,
+                prefixIcon: const Icon(Icons.calendar_today_outlined),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              ),
+              onTap: _selectDate,
+            ),
+            const SizedBox(height: 24),
+
+            // Quick Select Categories
             if (topCategoriesList.isNotEmpty && widget.preferredCategoryId == null) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: Text(AppLocalizations.of(context)!.quickSelectCategory)
+              Text(
+                AppLocalizations.of(context)!.quickSelectCategory,
+                style: textTheme.titleMedium?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: Wrap(
-                  spacing: 8.0,
-                  children: topCategoriesList.map((category) {
-                    bool isSelected = _categoryId == category['id'];
-                    return ChoiceChip(
-                      label: Text(category['name']),
-                      selected: isSelected,
-                      selectedColor: Theme.of(context).brightness == Brightness.light
-                        ? Colors.indigo.shade100
-                        : Colors.indigo.shade900,
-                      onSelected: (_) {
-                        setState(() {
-                          _categoryId = category['id'];
-                        });
-                      },
-                    );
-                  }).toList(),
-                )
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: DropdownButtonFormField<int>(
-                value: _categoryId,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.category,
-                  border: const OutlineInputBorder(),
-                ),
-                items: widget.categories.map((category) {
-                  return DropdownMenuItem<int>(
-                    value: category['id'],
-                    child: StatefulBuilder(
-                      builder: (context, setState) {
-                        bool isSelected = _categoryId == category['id'];
-                        return Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                          decoration: isSelected
-                              ? BoxDecoration(
-                                  color: Theme.of(context).brightness == Brightness.light
-                                    ? Colors.indigo.shade100
-                                    : Colors.indigo.shade900,
-                                  borderRadius: BorderRadius.circular(8),
-                                )
-                              : null,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 8,
-                            children: [
-                              if (isSelected)
-                                Icon(Icons.check, color: Theme.of(context).brightness == Brightness.light ? Colors.indigo.shade900 : Colors.indigo.shade100),
-                              Text(
-                                category['name'],
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 4.0,
+                children: topCategoriesList.map((category) {
+                  bool isSelected = _categoryId == category['id'];
+                  return ChoiceChip(
+                    label: Text(category['name']),
+                    selected: isSelected,
+                    selectedColor: colorScheme.secondaryContainer,
+                    onSelected: (_) {
+                      setState(() {
+                        _categoryId = category['id'];
+                      });
+                    },
                   );
                 }).toList(),
-                onChanged: (int? newValue) {
-                  setState(() {
-                    _categoryId = newValue ?? 0;
-                  });
-                },
-                onTap: () {
-                  setState(() {});
-                },
-                selectedItemBuilder: (BuildContext context) {
-                  return widget.categories.map<Widget>((category) {
-                    return Text(
-                      category['name'],
-                      style: const TextStyle(fontWeight: FontWeight.normal),
-                    );
-                  }).toList();
-                },
-              )
-
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: TextField(
-                controller: _commentController,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.comment,
-                  border: const OutlineInputBorder(),
-                ),
               ),
-            ),
+              const SizedBox(height: 24),
+            ],
 
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              title: Text(AppLocalizations.of(context)!.recurrentExpense),
-              value: _isRecurrent,
-              onChanged: (bool? value) {
-                if (value != null) {
+            // Category Dropdown
+            DropdownButtonFormField<int>(
+              value: _categoryId,
+              isExpanded: true,
+              selectedItemBuilder: (BuildContext context) {
+                return widget.categories.map<Widget>((item) {
+                  return FadingText(item['name']);
+                }).toList();
+              },
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.category,
+                prefixIcon: const Icon(Icons.category_outlined),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              ),
+              items: widget.categories.map((category) {
+                return DropdownMenuItem<int>(
+                  value: category['id'],
+                  child: FadingText(category['name']),
+                );
+              }).toList(),
+              onChanged: (int? newValue) {
+                if (newValue != null) {
                   setState(() {
-                    _isRecurrent = value;
+                    _categoryId = newValue;
                   });
                 }
               },
             ),
+            const SizedBox(height: 16),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _saveExpense,
-                  child: Text(
-                    widget.expense != null
-                      ? AppLocalizations.of(context)!.save
-                      : AppLocalizations.of(context)!.add,
-                    style: const TextStyle(
-                      fontSize: 20
+            // Comment Field
+            TextField(
+              controller: _commentController,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.comment,
+                prefixIcon: const Icon(Icons.notes_outlined),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Recurrent Expense Checkbox
+            InkWell(
+              onTap: () {
+                setState(() => _isRecurrent = !_isRecurrent);
+              },
+              borderRadius: BorderRadius.circular(8.0),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: _isRecurrent,
+                      onChanged: (bool? value) {
+                        setState(() => _isRecurrent = value ?? false);
+                      },
                     ),
-                  ),
-                )
-              ],
+                    Text(AppLocalizations.of(context)!.recurrentExpense),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Save/Add Button
+            SizedBox(
+              height: 50,
+              child: FilledButton.icon(
+                onPressed: _isLoading ? null : _saveExpense,
+                icon: const Icon(Icons.save_alt_rounded),
+                label: Text(
+                  widget.expense != null
+                      ? AppLocalizations.of(context)!.save.toUpperCase()
+                      : AppLocalizations.of(context)!.add.toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                ),
+              ),
             )
           ],
         ),
