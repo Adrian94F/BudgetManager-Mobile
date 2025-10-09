@@ -147,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   shadowColor: Theme.of(context).colorScheme.shadow,
-                  actions: /* _customActionsMenu() + */ _monthMenu(context, _monthRelated, []),
+                  actions: _monthMenu(context, _monthRelated, []),
                 ),
                 bottomNavigationBar: _bottomNavigation()
             );
@@ -189,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 shadowColor: Theme.of(context).colorScheme.shadow,
-                actions: /* _customActionsMenu() + */ _monthMenu(context, _monthRelated, months),
+                actions: _monthMenu(context, _monthRelated, months),
               ),
               bottomNavigationBar: _bottomNavigation(),
             );
