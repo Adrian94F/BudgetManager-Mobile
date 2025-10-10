@@ -10,7 +10,6 @@ import 'expenses_list.dart';
 import 'expenses_table.dart';
 import 'income_details.dart';
 import 'incomes.dart';
-import 'month_details.dart';
 import 'settings.dart';
 import 'summary.dart';
 import 'widgets/fab_menu.dart';
@@ -178,6 +177,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               );
 
+            var currentStartDate = DateTime.parse(_loadedData['month']['start_date']);
+            var currentEndDate = DateTime.parse(_loadedData['month']['end_date']).add(const Duration(days: 1));
+            var monthDates = currentStartDate.year == currentEndDate.year
+                ? "${DateFormat("d.MM").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}"
+                : "${DateFormat("d.MM.yyyy").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}";
 
             return Scaffold(
               body: RefreshIndicator(
@@ -190,7 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               appBar: AppBar(
                 title: Text(
-                  _screenTitles[_currentIndex],
+                  _currentIndex < 4
+                      ? monthDates
+                      : _screenTitles[_currentIndex],
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 shadowColor: Theme.of(context).colorScheme.shadow,
