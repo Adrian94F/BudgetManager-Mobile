@@ -271,45 +271,41 @@ class _ExpensesListViewState extends State<ExpensesListView> {
       return true;
     }).toList();
 
-    return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _showExpenseDetailsDialog(null);
-        },
-        label: Text(AppLocalizations.of(context)!.add),
-        icon: const Icon(Icons.add),
-      ),
-      appBar: (widget.filter.date != null || widget.filter.category != null)
-        ? AppBar(
-            title: Text(
-              filterTitleParts,
-              style: const TextStyle(fontSize: 16),
-            ),
-            shadowColor: Theme.of(context).colorScheme.shadow,
-          )
-        : null,
-      body: ListView.builder(
-        controller: _scrollController,
-        itemCount: filteredExpenses.length,
-        padding: const EdgeInsets.only(bottom: 80),
-        itemBuilder: (context, index) {
-          final expense = filteredExpenses[index];
-          bool showDateHeader = (index == 0 || filteredExpenses[index - 1]['date'] != expense['date']) && widget.filter.date == null;
-
-          return Column(
-            key: _itemKeys[index],
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (showDateHeader)
-                _dateHeader(DateTime.parse(expense['date'])),
-              _expenseListItem(expense)
-            ],
-          );
-        },
-      ),
-    );
+    return (widget.filter.date != null || widget.filter.category != null)
+      ? Scaffold(
+        appBar: AppBar(
+          title: Text(
+            filterTitleParts,
+            style: const TextStyle(fontSize: 16),
+          ),
+          shadowColor: Theme.of(context).colorScheme.shadow,
+        ),
+        body: _buildExpensesList(filteredExpenses)
+      )
+      : _buildExpensesList(filteredExpenses);
   }
 
+  Widget _buildExpensesList(List<dynamic> filteredExpenses) {
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: filteredExpenses.length,
+      padding: const EdgeInsets.only(bottom: 80),
+      itemBuilder: (context, index) {
+        final expense = filteredExpenses[index];
+        bool showDateHeader = (index == 0 || filteredExpenses[index - 1]['date'] != expense['date']) && widget.filter.date == null;
+
+        return Column(
+          key: _itemKeys[index],
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showDateHeader)
+              _dateHeader(DateTime.parse(expense['date'])),
+            _expenseListItem(expense)
+          ],
+        );
+      },
+    );
+  }
 
   List<int> getTopNCategories(List<dynamic> expenses, int nOfCategories) {
     Map<int, int> categoryCounts = {};

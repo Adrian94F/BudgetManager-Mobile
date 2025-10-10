@@ -5,9 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
 
 import '../services/auth_service.dart';
+import 'expense_details.dart';
 import 'expenses_list.dart';
 import 'expenses_table.dart';
+import 'income_details.dart';
 import 'incomes.dart';
+import 'month_details.dart';
 import 'settings.dart';
 import 'summary.dart';
 // import 'statistics.dart';
@@ -42,18 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
   ExpensesFilter _filter = ExpensesFilter();
   ScrollCoords? _savedCoords;
   int? _currentMonthId;
-  // Widget? _customAction;
 
   Future<void> _logout(BuildContext context) async {
     await _authService.logout();
     Navigator.pushReplacementNamed(context, '/login');
   }
-
-  // void _setCustomAction(Widget? action) {
-  //   setState(() {
-  //     _customAction = action;
-  //   });
-  // }
 
   Future<void> _loadUserName() async {
     String? login = await _storage.read(key: "login");
@@ -151,7 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   shadowColor: Theme.of(context).colorScheme.shadow,
                   actions: _monthMenu(context, _monthRelated, []),
                 ),
-                bottomNavigationBar: _bottomNavigation()
+                bottomNavigationBar: _bottomNavigation(),
+                floatingActionButton: _currentIndex < 4 ? _buildFabMenu(context) : null,
             );
           } else if (snapshot.hasError) {
             _logout(context);
@@ -194,9 +191,118 @@ class _HomeScreenState extends State<HomeScreen> {
                 actions: _monthMenu(context, _monthRelated, months),
               ),
               bottomNavigationBar: _bottomNavigation(),
+              floatingActionButton: _currentIndex < 4 ? _buildFabMenu(context) : null,
             );
           }
         }
+    );
+  }
+
+  Widget _buildFabMenu(BuildContext context) {
+    return FloatingActionButton(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(16.0)),
+      ),
+      onPressed: () {
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (BuildContext context) {
+            final topCategories = getTopNCategories(_loadedData['expenses'], 5);
+            return Stack(
+              alignment: Alignment.bottomRight,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 70),
+                  child: FloatingActionButton.extended(
+                    heroTag: 'add_expense_fab',
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ExpenseDetails(
+                            categories: _loadedData['categories'],
+                            monthId: _loadedData['month']['id'],
+                            topCategories: topCategories,
+                          ),
+                        ),
+                      ).then((_) => _handleRefresh());
+                    },
+                    label: Text(AppLocalizations.of(context)!.addExpense),
+                    icon: const Icon(Icons.arrow_upward_rounded),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 140.0),
+                  child: FloatingActionButton.extended(
+                    heroTag: 'add_income_fab',
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => IncomeDetails(
+                            income: null,
+                            monthId: _loadedData['month']['id'],
+                            preferredDate: DateTime.now(),
+                          ))
+                      ).then((_) => _handleRefresh());
+                    },
+                    label: Text(AppLocalizations.of(context)!.addIncome),
+                    icon: const Icon(Icons.arrow_downward_rounded),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 210.0),
+                  child: FloatingActionButton.extended(
+                    heroTag: 'month_details_fab',
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MonthDetailsScreen(
+                            month: _loadedData['month'],
+                          ),
+                        ),
+                      ).then((_) => _handleRefresh());
+                    },
+                    label: Text(AppLocalizations.of(context)!.monthDetails),
+                    icon: const Icon(Icons.edit_calendar),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 280.0),
+                  child: FloatingActionButton.extended(
+                    heroTag: 'add_month_fab',
+                    onPressed: () {
+                      Navigator.pop(context);
+                      var newStartDate = DateTime.parse(_loadedData['month']['end_date']).add(const Duration(days: 1));
+                      var newEndDate = newStartDate.add(const Duration(days: 30));
+                      var newMonth = {
+                        'id': null,
+                        'start_date': newStartDate.toString(),
+                        'end_date': newEndDate.toString(),
+                      };
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MonthDetailsScreen(
+                            month: newMonth,
+                          ),
+                        ),
+                      ).then((_) => _handleRefresh());
+                    },
+                    label: Text(AppLocalizations.of(context)!.newMonth),
+                    icon: const Icon(Icons.calendar_month_rounded),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: const Icon(Icons.menu_rounded),
     );
   }
 
@@ -261,110 +367,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _filter = ExpensesFilter();
       _fetchData();
     });
-  }
-
-  void _showMonthDetailsDialog(List<dynamic> months) {
-    var currentMonthIdx = _getCurrentMonthIdx(months);
-    bool isLoading = false;
-    String? errorMessage;
-    DateTime startDate = DateTime.parse(months[currentMonthIdx]['start_date']);
-    DateTime endDate = DateTime.parse(months[currentMonthIdx]['end_date']);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(AppLocalizations.of(context)!.monthDetails),
-              actionsPadding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(AppLocalizations.of(context)!.startDate),
-                  TextButton(
-                    onPressed: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: startDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null && pickedDate != startDate) {
-                        setState(() {
-                          startDate = pickedDate;
-                        });
-                      }
-                    },
-                    child: Text("${startDate.toLocal()}".split(' ')[0]),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(AppLocalizations.of(context)!.endDate),
-                  TextButton(
-                    onPressed: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: endDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null && pickedDate != endDate) {
-                        setState(() {
-                          endDate = pickedDate;
-                        });
-                      }
-                    },
-                    child: Text("${endDate.toLocal()}".split(' ')[0]),
-                  ),
-                  if (errorMessage != null) ...[
-                    const SizedBox(height: 8),
-                    Text(errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                  ]
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(AppLocalizations.of(context)!.cancel),
-                ),
-                FilledButton(
-                  onPressed: isLoading ? null : () async {
-                    setState(() {
-                      isLoading = true;
-                      errorMessage = null;
-                    });
-
-                    var monthId = months[currentMonthIdx]['id'];
-                    var format = DateFormat("yyyy-MM-dd");
-                    var requestData = {
-                      'start_date': format.format(startDate),
-                      'end_date': format.format(endDate),
-                      'id': monthId,
-                    };
-
-                    try {
-                      await _authService.post("month/", requestData);
-                      Navigator.pop(context);
-                      _handleRefresh();
-                    } catch (e) {
-                      setState(() {
-                        isLoading = false;
-                        errorMessage = AppLocalizations.of(context)!.errorSavingData;
-                      });
-                    }
-                  },
-                  child: isLoading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : Text(AppLocalizations.of(context)!.save),
-                ),
-              ],
-
-            );
-          },
-        );
-      },
-    );
   }
 
   void _showMonthSelectorDialog(List<dynamic> months) {
@@ -480,11 +482,17 @@ class _HomeScreenState extends State<HomeScreen> {
         tooltip: localizations.monthDetails,
         onPressed: () => _showMonthSelectorDialog(months),
       ),
-      IconButton(
-        icon: const Icon(Icons.edit_calendar),
-        tooltip: localizations.monthDetails,
-        onPressed: () => _showMonthDetailsDialog(months),
-      ),
     ];
+  }
+
+  List<int> getTopNCategories(List<dynamic> expenses, int nOfCategories) {
+    Map<int, int> categoryCounts = {};
+    for (var expense in expenses) {
+      int categoryId = expense['category'];
+      categoryCounts[categoryId] = (categoryCounts[categoryId] ?? 0) + 1;
+    }
+    List<MapEntry<int, int>> categoryCountsList = categoryCounts.entries.toList();
+    categoryCountsList.sort((a, b) => b.value.compareTo(a.value));
+    return categoryCountsList.take(nOfCategories).map((entry) => entry.key).toList();
   }
 }

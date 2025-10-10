@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:intl/intl.dart';
 
 import '../services/auth_service.dart';
 import '../tools/formatters.dart';
+import 'income_details.dart';
 
 class IncomesScreen extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -77,21 +77,13 @@ class _IncomesScreenState extends State<IncomesScreen> {
     final incomes = widget.data['incomes'] as List<dynamic>;
     incomes.sort((b, a) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
 
-    return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _showIncomeDetailsDialog(null);
-        },
-        label: Text(AppLocalizations.of(context)!.add),
-        icon: const Icon(Icons.add),
-      ),
-      body: ListView.builder(
-        itemCount: incomes.length,
-        padding: const EdgeInsets.only(bottom: 80),
-        itemBuilder: (context, index) {
-          final income = incomes[index];
+    return ListView.builder(
+      itemCount: incomes.length,
+      padding: const EdgeInsets.only(bottom: 80),
+      itemBuilder: (context, index) {
+        final income = incomes[index];
 
-          return Slidable(
+        return Slidable(
             key: Key(income['id'].toString()),
             endActionPane: ActionPane(
               motion: const ScrollMotion(),
@@ -123,162 +115,40 @@ class _IncomesScreenState extends State<IncomesScreen> {
               ],
             ),
             child: Builder(
-              builder: (context) => InkWell(
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
-                  title: _incomeListItemTitle(income),
-                  subtitle: _incomeListItemSubtitle(income)
-                ),
-                onTap: () {
-                  final controller = Slidable.of(context)!;
-                  final isClosed = controller.actionPaneType.value == ActionPaneType.none;
-                  if (isClosed) {
-                    _showIncomeDetailsDialog(income);
-                  } else {
-                    controller.close();
-                  }
-                },
-              )
+                builder: (context) => InkWell(
+                  child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
+                      title: _incomeListItemTitle(income),
+                      subtitle: _incomeListItemSubtitle(income)
+                  ),
+                  onTap: () {
+                    final controller = Slidable.of(context)!;
+                    final isClosed = controller.actionPaneType.value == ActionPaneType.none;
+                    if (isClosed) {
+                      _showIncomeDetailsDialog(income);
+                    } else {
+                      controller.close();
+                    }
+                  },
+                )
             )
-          );
-        },
-      ));
+        );
+      },
+    );
   }
 
   void _showIncomeDetailsDialog(Map<String, dynamic>? income) {
-    final title = income != null
-        ? AppLocalizations.of(context)!.incomeDetails
-        : AppLocalizations.of(context)!.addIncome;
-
-    TextEditingController valueController = TextEditingController(text: income?['value']?.toString() ?? '');
-    TextEditingController dateController = TextEditingController(text: income?['date'] ?? DateFormat("yyyy-MM-dd").format(DateTime.now()));
-    TextEditingController commentController = TextEditingController(text: income?['comment'] ?? '');
-    bool isSalary = income?['is_salary'] ?? false;
-    bool isLoading = false;
-    String? errorMessage;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(title),
-              content: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(errorMessage!, style: const TextStyle(color: Colors.red)),
-                      ),
-                    TextField(
-                      controller: valueController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: AppLocalizations.of(context)!.amount,
-                      ),
-                    ),
-                    TextField(
-                      controller: dateController,
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        labelText: AppLocalizations.of(context)!.date,
-                        suffixIcon: const Icon(Icons.calendar_today),
-                      ),
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: income != null
-                              ? DateTime.parse(income['date'])
-                              : DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        );
-                        if (pickedDate != null) {
-                          setState(() {
-                            dateController.text =
-                                DateFormat('yyyy-MM-dd').format(pickedDate);
-                          });
-                        }
-                      },
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(AppLocalizations.of(context)!.salary),
-                        Checkbox(
-                          value: isSalary,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              isSalary = value ?? false;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    TextField(
-                      controller: commentController,
-                      decoration: InputDecoration(
-                        labelText: AppLocalizations.of(context)!.comment,
-                      ),
-                    ),
-                  ],
-                ),
-              actions: isLoading
-                ? []
-                : [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(AppLocalizations.of(context)!.cancel),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      if (valueController.text.isEmpty || dateController.text.isEmpty) {
-                        setState(() {
-                          errorMessage = AppLocalizations.of(context)!.pleaseFillAllFields;
-                        });
-                        return;
-                      }
-
-                      setState(() {
-                        isLoading = true;
-                        errorMessage = null;
-                      });
-
-                      try {
-                        final authService = AuthService();
-                        final requestData = {
-                          'value': double.tryParse(valueController.text) ?? 0.0,
-                          'date': dateController.text,
-                          'is_salary': isSalary,
-                          'comment': commentController.text,
-                          'month': widget.data['month']['id'] ?? ''
-                        };
-
-                        if (income != null && income['id'] != null) {
-                          requestData['id'] = income['id'];
-                        }
-
-                        await authService.post("income/", requestData);
-                        Navigator.pop(context);
-                        widget.refreshParent();
-                      } catch (e) {
-                        setState(() {
-                          isLoading = false;
-                          errorMessage = AppLocalizations.of(context)!.errorSavingData;
-                        });
-                      }
-                    },
-                    child: Text(AppLocalizations.of(context)!.save),
-                  )
-                ],
-            );
-          },
-        );
-      },
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => IncomeDetails(
+        income: income,
+        monthId: widget.data['month']['id'],
+        preferredDate: income != null ? DateTime.parse(income['date']) : DateTime.now(),
+      ))
+    ).then(
+      (value) => setState(() {
+        widget.refreshParent();
+      })
     );
   }
 
@@ -348,5 +218,4 @@ class _IncomesScreenState extends State<IncomesScreen> {
       },
     );
   }
-
 }

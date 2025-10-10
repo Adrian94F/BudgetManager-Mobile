@@ -73,6 +73,8 @@ class _SummaryScreenState extends State<SummaryScreen> {
         if (DateTime.now().isAfter(startDate) &&
             DateTime.now().isBefore(endDate.add(const Duration(days: 1))))
           _buildCurrentMonthCard(context, startDate, endDate, incomesSum, monthlyExpensesSum, dailyExpensesBeforeTodaySum, todayExpensesSum),
+
+        const SizedBox(height: 70),
       ],
     );
   }
