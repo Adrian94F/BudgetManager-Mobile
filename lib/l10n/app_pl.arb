@@ -65,5 +65,7 @@
     "rememberMe": "Zapamiętaj mnie",
     "budgetSettings": "Ustawienia budżetu",
     "copy": "Kopiuj",
-    "statistics": "Statystyki"
+    "statistics": "Statystyki",
+    "nextMonth": "Następny miesiąc",
+    "prevMonth": "Poprzedni miesiąc"
 }

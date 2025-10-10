@@ -127,7 +127,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserName();
+    });
     _fetchData();
   }
 
@@ -315,6 +317,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     child: Text("${endDate.toLocal()}".split(' ')[0]),
                   ),
+                  if (errorMessage != null) ...[
+                    const SizedBox(height: 8),
+                    Text(errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  ]
                 ],
               ),
               actions: [
@@ -322,8 +328,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: Text(AppLocalizations.of(context)!.cancel),
                 ),
-                TextButton(
-                  onPressed: () async {
+                FilledButton(
+                  onPressed: isLoading ? null : () async {
                     setState(() {
                       isLoading = true;
                       errorMessage = null;
@@ -348,9 +354,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
                     }
                   },
-                  child: Text(AppLocalizations.of(context)!.save),
+                  child: isLoading
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : Text(AppLocalizations.of(context)!.save),
                 ),
               ],
+
             );
           },
         );
@@ -359,57 +368,64 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showMonthSelectorDialog(List<dynamic> months) {
-    showDialog(
-      context: context,
+    showDialog(context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.selectMonth),
-          actionsPadding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-          contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 24.0),
+          contentPadding: EdgeInsets.zero,
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
               shrinkWrap: true,
               itemCount: months.length,
               itemBuilder: (context, index) {
                 final month = months[index];
-                final currentYear = month['start_date'].substring(0, 4);
+                final date = DateTime.parse(month['start_date']);
+                final jiffy = Jiffy.parseFromDateTime(date);
+
                 final bool showYearHeader = index == 0 ||
-                    months[index - 1]['start_date'].substring(0, 4) != currentYear;
-                final bool isSelected = (_currentMonthId == null && index == 0) || month['id'] == _currentMonthId;
+                    Jiffy.parseFromDateTime(DateTime.parse(months[index - 1]['start_date'])).year != jiffy.year;
+
+                final isSelected = (_currentMonthId == null && month['is_current'] == true) || month['id'] == _currentMonthId;
+
+                var startDate = DateTime.parse(month['start_date']);
+                var endDate = DateTime.parse(month['end_date']);
+                var monthDates = startDate.year == endDate.year
+                    ? "${DateFormat("d.MM").format(startDate)}-${DateFormat("d.MM").format(endDate)}"
+                    : "${DateFormat("d.MM.yyyy").format(startDate)}-${DateFormat("d.MM.yyyy").format(endDate)}";
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (showYearHeader)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                         child: Text(
-                          currentYear,
-                          style: const TextStyle(
-                            fontSize: 18,
+                          jiffy.year.toString(),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),
                     ListTile(
                       title: Text(
-                        "${month['start_date']} – ${month['end_date']}",
+                        monthDates,
                         style: TextStyle(
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
-                      titleAlignment: ListTileTitleAlignment.center,
+                      trailing: isSelected
+                          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+                          : null,
                       onTap: () {
-                        setState(() {
-                          _currentMonthId = month['id'];
-                          _fetchData();
-                        });
+                        _selectMonth(month['id']);
                         Navigator.pop(context);
                       },
                     ),
+                    if (index < months.length - 1 && Jiffy.parseFromDateTime(DateTime.parse(months[index + 1]['start_date'])).year != jiffy.year)
+                      const Divider(indent: 16, endIndent: 16),
                   ],
                 );
               },
@@ -426,6 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+
   int _getCurrentMonthIdx(List<dynamic> months) {
     var currentMonthIdx = months.indexWhere((month) => month['id'] == _currentMonthId);
     if (currentMonthIdx < 0) {
@@ -434,90 +451,39 @@ class _HomeScreenState extends State<HomeScreen> {
     return currentMonthIdx;
   }
 
-
-  List<Widget> _monthMenu(BuildContext context, bool isMonthRelated, List<dynamic> months) {
-    var currentMonthIdx = _getCurrentMonthIdx(months);
-    var previousEnabled = false;
-    var nextEnabled = false;
-    if (months.isNotEmpty) {
-      if (_currentMonthId != null && _currentMonthId != months[0]['id']) {
-        nextEnabled = true;
-      }
-      if (_currentMonthId != months[months.length - 1]['id']) {
-        previousEnabled = true;
-      }
+  List<Widget> _monthMenu(BuildContext context, bool isVisible, List<dynamic> months) {
+    if (!isVisible || months.isEmpty) {
+      return [];
     }
 
-    return !isMonthRelated ? [] : [
-      IconButton(
-        icon: const Icon(Icons.arrow_back_ios_rounded),
-        onPressed: previousEnabled
-            ? () {
-          if (currentMonthIdx < months.length - 1) {
-            _selectMonth(months[currentMonthIdx + 1]['id']);
-          }
-        }
-            : null,
-      ),
-      IconButton(
-        icon: const Icon(Icons.arrow_forward_ios_rounded),
-        onPressed: nextEnabled
-            ? () {
-          if (currentMonthIdx > 0) {
-            _selectMonth(months[currentMonthIdx - 1]['id']);
-          }
-        }
-            : null,
-      ),
-      MenuAnchor(
-        builder: (context, controller, child) {
-          return IconButton(
-            icon: const Icon(Icons.calendar_month_rounded),
-            onPressed: () {
-              if (controller.isOpen) {
-                controller.close();
-              } else {
-                controller.open();
-              }
-            },
-          );
-        },
-        menuChildren: [
-          MenuItemButton(
-              child: Text(AppLocalizations.of(context)!.monthDetails),
-              onPressed: () => _showMonthDetailsDialog(months)
-          ),
-          MenuItemButton(
-              child: Text(AppLocalizations.of(context)!.selectMonth),
-              onPressed: () => _showMonthSelectorDialog(months)
-          ),
-          MenuItemButton(
-              child: Text(AppLocalizations.of(context)!.newMonth),
-              onPressed: () async {
-                var latestMonth = months[0]!;
-                var startDate = DateTime.parse(latestMonth['end_date']).add(const Duration(days: 1));
-                var endDate = Jiffy.parseFromDateTime(startDate).add(months: 1).subtract(days: 1).dateTime;
-                var format = DateFormat("yyyy-MM-dd");
-                var requestData = {
-                  'start_date': format.format(startDate),
-                  'end_date': format.format(endDate),
-                };
+    var currentMonthIdx = _getCurrentMonthIdx(months);
+    var nextMonthId = currentMonthIdx > 0 ? months[currentMonthIdx - 1]['id'] : null;
+    var previousMonthId = currentMonthIdx < months.length - 1 ? months[currentMonthIdx + 1]['id'] : null;
 
-                try {
-                  await _authService.post("month/", requestData);
-                  setState(() {
-                    _currentMonthId = null;
-                  });
-                  _handleRefresh();
-                } catch (e) {
-                  setState(() {
-                    // isLoading = false;
-                    // errorMessage = AppLocalizations.of(context)!.errorSavingData;
-                  });
-                }
-              }
-          ),
-        ],
+    final localizations = AppLocalizations.of(context)!;
+
+    Jiffy.now().localeCode;
+
+    return [
+      IconButton(
+        icon: const Icon(Icons.arrow_back_ios),
+        tooltip: localizations.nextMonth,
+        onPressed: previousMonthId != null ? () => _selectMonth(previousMonthId) : null,
+      ),
+      IconButton(
+        icon: const Icon(Icons.arrow_forward_ios),
+        tooltip: localizations.prevMonth,
+        onPressed: nextMonthId != null ? () => _selectMonth(nextMonthId) : null,
+      ),
+      IconButton(
+        icon: const Icon(Icons.calendar_month),
+        tooltip: localizations.monthDetails,
+        onPressed: () => _showMonthSelectorDialog(months),
+      ),
+      IconButton(
+        icon: const Icon(Icons.edit_calendar),
+        tooltip: localizations.monthDetails,
+        onPressed: () => _showMonthDetailsDialog(months),
       ),
     ];
   }
