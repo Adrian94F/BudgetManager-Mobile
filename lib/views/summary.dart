@@ -266,8 +266,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
       dense: true,
       title: Text(name),
       trailing: Text(
-        isCurrency ? Formatters.currencyFormatter.format(value) : value.toString(),
-        style: const TextStyle(fontWeight: FontWeight.w500),
+          isCurrency ? Formatters.currencyFormatter.format(value) : value.toString(),
+          style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14
+          ),
       ),
     );
   }
