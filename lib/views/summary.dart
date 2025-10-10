@@ -1,26 +1,33 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';import 'package:intl/intl.dart';
 import '../tools/formatters.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-class SummaryScreen extends StatefulWidget {
+class Summary {
   final Map<String, dynamic> data;
 
-  const SummaryScreen({Key? key, required this.data}) : super(key: key);
+  late DateTime startDate;
+  late DateTime endDate;
+  late double salarySum;
+  late double otherIncomesSum;
+  late double incomesSum;
+  late double monthlyExpensesSum;
+  late double regularExpensesSum;
+  late double dailyExpensesBeforeTodaySum;
+  late double todayExpensesSum;
+  late double expensesSum;
+  late double balance;
 
-  @override
-  _SummaryScreenState createState() => _SummaryScreenState();
-}
+  Summary({required this.data}) {
+    _calculate();
+  }
 
-class _SummaryScreenState extends State<SummaryScreen> {
-  @override
-  Widget build(BuildContext context) {
-    var startDate = DateTime.parse(widget.data['month']['start_date']);
-    var endDate = DateTime.parse(widget.data['month']['end_date']);
+  void _calculate() {
+    startDate = DateTime.parse(data['month']['start_date']);
+    endDate = DateTime.parse(data['month']['end_date']);
 
-    var incomes = widget.data['incomes'] as List<dynamic>;
-    var salarySum = 0.0;
-    var otherIncomesSum = 0.0;
+    var incomes = data['incomes'] as List<dynamic>;
+    salarySum = 0.0;
+    otherIncomesSum = 0.0;
     for (var income in incomes) {
       var value = income['value'];
       if (income['is_salary'] == true) {
@@ -29,13 +36,13 @@ class _SummaryScreenState extends State<SummaryScreen> {
         otherIncomesSum += value;
       }
     }
-    var incomesSum = salarySum + otherIncomesSum;
+    incomesSum = salarySum + otherIncomesSum;
 
-    var expenses = widget.data['expenses'] as List<dynamic>;
-    var monthlyExpensesSum = 0.0;
-    var regularExpensesSum = 0.0;
-    var dailyExpensesBeforeTodaySum = 0.0;
-    var todayExpensesSum = 0.0;
+    var expenses = data['expenses'] as List<dynamic>;
+    monthlyExpensesSum = 0.0;
+    regularExpensesSum = 0.0;
+    dailyExpensesBeforeTodaySum = 0.0;
+    todayExpensesSum = 0.0;
     var today = DateTime.parse(
         "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}");
     for (var expense in expenses) {
@@ -55,25 +62,53 @@ class _SummaryScreenState extends State<SummaryScreen> {
         }
       }
     }
-    var expensesSum = monthlyExpensesSum + regularExpensesSum;
-    var balance = incomesSum - expensesSum;
+    expensesSum = monthlyExpensesSum + regularExpensesSum;
+    balance = incomesSum - expensesSum;
+  }
+}
 
+class SummaryScreen extends StatefulWidget {
+  final Map<String, dynamic> data;
+
+  const SummaryScreen({Key? key, required this.data}) : super(key: key);
+
+  @override
+  _SummaryScreenState createState() => _SummaryScreenState();
+}
+
+class _SummaryScreenState extends State<SummaryScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final summary = Summary(data: widget.data);
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       children: [
-        _buildIncomeCard(context, salarySum, otherIncomesSum, incomesSum),
+        _buildIncomeCard(
+            context,
+            summary.salarySum,
+            summary.otherIncomesSum,
+            summary.incomesSum),
         const SizedBox(height: 16),
-
-        _buildExpensesCard(context, regularExpensesSum, monthlyExpensesSum, expensesSum),
+        _buildExpensesCard(
+            context,
+            summary.regularExpensesSum,
+            summary.monthlyExpensesSum,
+            summary.expensesSum),
         const SizedBox(height: 16),
-
-        _buildBalanceCard(context, balance),
+        _buildBalanceCard(
+            context,
+            summary.balance),
         const SizedBox(height: 16),
-
-        if (DateTime.now().isAfter(startDate) &&
-            DateTime.now().isBefore(endDate.add(const Duration(days: 1))))
-          _buildCurrentMonthCard(context, startDate, endDate, incomesSum, monthlyExpensesSum, dailyExpensesBeforeTodaySum, todayExpensesSum),
-
+        if (DateTime.now().isAfter(summary.startDate) &&
+            DateTime.now().isBefore(summary.endDate.add(const Duration(days: 1))))
+          _buildCurrentMonthCard(
+              context,
+              summary.startDate,
+              summary.endDate,
+              summary.incomesSum,
+              summary.monthlyExpensesSum,
+              summary.dailyExpensesBeforeTodaySum,
+              summary.todayExpensesSum),
         const SizedBox(height: 70),
       ],
     );
