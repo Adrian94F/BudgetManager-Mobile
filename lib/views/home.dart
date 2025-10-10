@@ -13,6 +13,7 @@ import 'incomes.dart';
 import 'month_details.dart';
 import 'settings.dart';
 import 'summary.dart';
+import 'widgets/fab_menu.dart';
 // import 'statistics.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -148,7 +149,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   actions: _monthMenu(context, _monthRelated, []),
                 ),
                 bottomNavigationBar: _bottomNavigation(),
-                floatingActionButton: _currentIndex < 4 ? _buildFabMenu(context) : null,
+                floatingActionButton: _currentIndex < 4
+                    ? FabMenu(
+                      loadedData: _loadedData,
+                      onRefresh: _handleRefresh,
+                    )
+                    : null,
             );
           } else if (snapshot.hasError) {
             _logout(context);
@@ -191,118 +197,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 actions: _monthMenu(context, _monthRelated, months),
               ),
               bottomNavigationBar: _bottomNavigation(),
-              floatingActionButton: _currentIndex < 4 ? _buildFabMenu(context) : null,
+              floatingActionButton: _currentIndex < 4
+                  ? FabMenu(
+                    loadedData: _loadedData,
+                    onRefresh: _handleRefresh,
+                  )
+                  : null,
             );
           }
         }
-    );
-  }
-
-  Widget _buildFabMenu(BuildContext context) {
-    return FloatingActionButton(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(16.0)),
-      ),
-      onPressed: () {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          builder: (BuildContext context) {
-            final topCategories = getTopNCategories(_loadedData['expenses'], 5);
-            return Stack(
-              alignment: Alignment.bottomRight,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 70),
-                  child: FloatingActionButton.extended(
-                    heroTag: 'add_expense_fab',
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ExpenseDetails(
-                            categories: _loadedData['categories'],
-                            monthId: _loadedData['month']['id'],
-                            topCategories: topCategories,
-                          ),
-                        ),
-                      ).then((_) => _handleRefresh());
-                    },
-                    label: Text(AppLocalizations.of(context)!.addExpense),
-                    icon: const Icon(Icons.arrow_upward_rounded),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 140.0),
-                  child: FloatingActionButton.extended(
-                    heroTag: 'add_income_fab',
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => IncomeDetails(
-                            income: null,
-                            monthId: _loadedData['month']['id'],
-                            preferredDate: DateTime.now(),
-                          ))
-                      ).then((_) => _handleRefresh());
-                    },
-                    label: Text(AppLocalizations.of(context)!.addIncome),
-                    icon: const Icon(Icons.arrow_downward_rounded),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 210.0),
-                  child: FloatingActionButton.extended(
-                    heroTag: 'month_details_fab',
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MonthDetailsScreen(
-                            month: _loadedData['month'],
-                          ),
-                        ),
-                      ).then((_) => _handleRefresh());
-                    },
-                    label: Text(AppLocalizations.of(context)!.monthDetails),
-                    icon: const Icon(Icons.edit_calendar),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 280.0),
-                  child: FloatingActionButton.extended(
-                    heroTag: 'add_month_fab',
-                    onPressed: () {
-                      Navigator.pop(context);
-                      var newStartDate = DateTime.parse(_loadedData['month']['end_date']).add(const Duration(days: 1));
-                      var newEndDate = newStartDate.add(const Duration(days: 30));
-                      var newMonth = {
-                        'id': null,
-                        'start_date': newStartDate.toString(),
-                        'end_date': newEndDate.toString(),
-                      };
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MonthDetailsScreen(
-                            month: newMonth,
-                          ),
-                        ),
-                      ).then((_) => _handleRefresh());
-                    },
-                    label: Text(AppLocalizations.of(context)!.newMonth),
-                    icon: const Icon(Icons.calendar_month_rounded),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-      child: const Icon(Icons.menu_rounded),
     );
   }
 
@@ -330,22 +233,22 @@ class _HomeScreenState extends State<HomeScreen> {
           _currentIndex = index;
         });
       },
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
       destinations: [
         NavigationDestination(
-          icon: const Icon(Icons.home_rounded),
+          icon: const Icon(Icons.home),
           label: AppLocalizations.of(context)!.summary,
         ),
         NavigationDestination(
-          icon: const Icon(Icons.table_rows_rounded),
+          icon: const Icon(Icons.table_rows),
           label: AppLocalizations.of(context)!.expensesListShort,
         ),
         NavigationDestination(
-          icon: const Icon(Icons.grid_view_rounded),
+          icon: const Icon(Icons.grid_view_sharp),
           label: AppLocalizations.of(context)!.expensesTableShort,
         ),
         NavigationDestination(
-          icon: const Icon(Icons.download_rounded),
+          icon: const Icon(Icons.download),
           label: AppLocalizations.of(context)!.incomes,
         ),
         // NavigationDestination(
@@ -483,16 +386,5 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () => _showMonthSelectorDialog(months),
       ),
     ];
-  }
-
-  List<int> getTopNCategories(List<dynamic> expenses, int nOfCategories) {
-    Map<int, int> categoryCounts = {};
-    for (var expense in expenses) {
-      int categoryId = expense['category'];
-      categoryCounts[categoryId] = (categoryCounts[categoryId] ?? 0) + 1;
-    }
-    List<MapEntry<int, int>> categoryCountsList = categoryCounts.entries.toList();
-    categoryCountsList.sort((a, b) => b.value.compareTo(a.value));
-    return categoryCountsList.take(nOfCategories).map((entry) => entry.key).toList();
   }
 }
