@@ -1,5 +1,7 @@
+import 'package:budget_manager/views/widgets/custom_data_table.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:material_table_view/material_table_view.dart';
 
 import 'expenses_list.dart';
@@ -93,45 +95,6 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     final coordY = _tableViewController.verticalScrollController.offset;
     widget.saveTableCoords(ScrollCoords(x: coordX, y: coordY));
     widget.openFilteredListCallback(filter);
-    // setState(() {
-    //   var filteredExpenses = widget.expenses.where((expense) {
-    //     final matchesCategory = categoryId == null || expense['category'] == categoryId;
-    //     final matchesDate = date == null || expense['date'] == DateFormat('yyyy-MM-dd').format(date);
-    //     return matchesCategory && matchesDate;
-    //   }).toList();
-    //
-    //   // ExpensesTableView.scrollCoords = ScrollCoords(
-    //   //   x: _tableViewController.horizontalScrollController.offset,
-    //   //   y: _tableViewController.verticalScrollController.offset
-    //   // );
-    //
-    //   // if (ExpensesTableView.expensesFilter != null) {
-    //   //   ExpensesTableView.expensesFilter = null;
-    //   // } else {
-    //   //   ExpensesTableView.expensesFilter = ExpensesFilter(
-    //   //     date: date,
-    //   //     category: categoryId,
-    //   //   );
-    //   // }
-    //
-    //   // Navigator.push(
-    //   //   context,
-    //   //   MaterialPageRoute(
-    //   //       builder: (context) => FilteredExpensesList(
-    //   //           expenses: filteredExpenses,
-    //   //           categories: widget.categories,
-    //   //           filter: ExpensesFilter(
-    //   //               date: date,
-    //   //               category: categoryId,
-    //   //           ),
-    //   //           monthId: widget.month['id'],
-    //   //           refreshParent: widget.refreshParent,
-    //   //       )
-    //   //   ),
-    //   // ).then((value)=>setState((){
-    //   //   widget.refreshParent();
-    //   // }));
-    // });
   }
 
   Color getBackgroundColor(BuildContext context, DateTime date) {
@@ -174,6 +137,31 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       categoryDateSums[category]![date] = (categoryDateSums[category]![date] ?? 0.0) + value;
     }
 
+    final _rowsCells = widget.categories.map((category) {
+      final categoryId = category['id'];
+      return List.generate(endDate.difference(beginDate).inDays, (dayIndex) {
+        final date = beginDate.add(Duration(days: dayIndex));
+        final sum = categoryDateSums[categoryId]?[date] ?? 0.0;
+        return sum != 0.0 ? sum.round() : 0;
+      });
+    }).toList();
+    final _fixedColCells = widget.categories.map((c) => c['name'].toString()).toList();
+    final _fixedRowCells = List.generate(
+        endDate.difference(beginDate).inDays,
+            (i) => DateFormat('d.MM').format(beginDate.add(Duration(days: i))));
+    return CustomDataTable(
+      rowsCells: _rowsCells,
+      fixedColCells: _fixedColCells,
+      fixedRowCells: _fixedRowCells,
+      fixedColWidth: 100,
+      cellWidth: 50,
+      cellHeight: 30,
+      cellBuilder: (data) {
+        return Text('$data');
+      },
+      fixedCornerCell: null,
+    );
+
     List<TableColumn> columns = [
       const TableColumn(width: 150.0, freezePriority: 100),
     ];
@@ -188,7 +176,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
             controller: _tableViewController,
             columns: columns,
             rowCount: widget.categories.length,
-            rowHeight: 36,
+            rowHeight: 30,
             style: const TableViewStyle(
               dividers: TableViewDividersStyle(
                 vertical: TableViewVerticalDividersStyle(
@@ -205,8 +193,8 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
                     return Container(
                       alignment: Alignment.centerLeft,
                       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                      child: const Text(
-                        "Categories",
+                      child: Text(
+                          AppLocalizations.of(context)!.categories,
                         style: TextStyle(fontStyle: FontStyle.italic)
                       ),
                     );
@@ -264,9 +252,9 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
                     return Container(
                       alignment: Alignment.centerLeft,
                       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                      child: const Text(
-                        "Sums",
-                        style: TextStyle(fontStyle: FontStyle.italic)
+                      child: Text(
+                        AppLocalizations.of(context)!.sums,
+                        style: const TextStyle(fontStyle: FontStyle.italic)
                       ),
                     );
                   } else {

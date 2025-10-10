@@ -69,6 +69,8 @@
   "incomeRemoval": "Do you really want to remove this income?",
   "expenseRemoval": "Do you really want to remove this expense?",
   "category": "Category",
+  "categories": "Categories",
+  "sums": "Sums",
   "quickSelectCategory": "Quick select category",
   "login": "Login",
   "loginFailed": "Login failed.",
