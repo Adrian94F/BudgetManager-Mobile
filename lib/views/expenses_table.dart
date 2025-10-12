@@ -5,6 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:material_table_view/material_table_view.dart';
 
 import 'expenses_list.dart';
+import 'filtered_expenses_list.dart';
 import 'widgets/expenses_table_item_button.dart';
 
 class ExpensesTableView extends StatefulWidget {
@@ -91,9 +92,23 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       category: categoryId,
     );
     print("Showing filtered expenses");
-    final coordX = _tableViewController.horizontalScrollController.offset;
-    final coordY = _tableViewController.verticalScrollController.offset;
-    widget.saveTableCoords(ScrollCoords(x: coordX, y: coordY));
+    // final coordX = _tableViewController.horizontalScrollController.offset;
+    // final coordY = _tableViewController.verticalScrollController.offset;
+    // widget.saveTableCoords(ScrollCoords(x: coordX, y: coordY));
+
+    /*Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FilteredExpensesList(
+          expenses: widget.expenses,
+          categories: widget.categories,
+          filter: filter,
+          monthId: widget.month['id'],
+          refreshParent: widget.refreshParent,
+        ),
+      ),
+    );*/
+
     widget.openFilteredListCallback(filter);
   }
 
@@ -112,6 +127,8 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         : Colors.transparent);
     return bgColor;
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -137,148 +154,84 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       categoryDateSums[category]![date] = (categoryDateSums[category]![date] ?? 0.0) + value;
     }
 
-    final _rowsCells = widget.categories.map((category) {
-      final categoryId = category['id'];
+    // Create the main data grid with CellData objects
+    final List<List<CellData>> _rowsCells = widget.categories.map((category) {
+      final int categoryId = category['id'];
       return List.generate(endDate.difference(beginDate).inDays, (dayIndex) {
         final date = beginDate.add(Duration(days: dayIndex));
         final sum = categoryDateSums[categoryId]?[date] ?? 0.0;
-        return sum != 0.0 ? sum.round() : 0;
+        return CellData(
+          text: sum != 0.0 ? sum.round().toString() : '',
+          categoryId: categoryId,
+          date: date,
+        );
       });
     }).toList();
-    final _fixedColCells = widget.categories.map((c) => c['name'].toString()).toList();
-    final _fixedRowCells = List.generate(
-        endDate.difference(beginDate).inDays,
-            (i) => DateFormat('d.MM').format(beginDate.add(Duration(days: i))));
-    return CustomDataTable(
+
+    // Create the fixed column headers (Category names) with CellData
+    final List<CellData> _fixedColCells = widget.categories.map((c) {
+      return CellData(
+        text: c['name'].toString(),
+        categoryId: c['id'],
+        date: null,
+      );
+    }).toList();
+
+    // Create the fixed row headers (Dates) with CellData
+    final List<CellData> _fixedRowCells = List.generate(
+      endDate.difference(beginDate).inDays,
+          (i) {
+        final date = beginDate.add(Duration(days: i));
+        return CellData(
+          text: DateFormat('d.MM').format(date),
+          categoryId: null,
+          date: date,
+        );
+      },
+    );
+
+    return CustomDataTable<CellData>(
       rowsCells: _rowsCells,
       fixedColCells: _fixedColCells,
       fixedRowCells: _fixedRowCells,
-      fixedColWidth: 100,
-      cellWidth: 50,
+      fixedColWidth: 120,
+      cellWidth: 60,
       cellHeight: 30,
+      cellMargin: 0,
+      cellSpacing: 0,
       cellBuilder: (data) {
-        return Text('$data');
-      },
-      fixedCornerCell: null,
-    );
+        final category = data.categoryId;
+        final date = data.date;
 
-    List<TableColumn> columns = [
-      const TableColumn(width: 150.0, freezePriority: 100),
-    ];
-    for (var date = beginDate; date.isBefore(endDate); date = date.add(const Duration(days: 1))) {
-      columns.add(TableColumn(width: _columnWidth));
-    }
+        if (category == null && date == null) {
+          return Container();
+        }
 
-    return Column(
-      children: [
-        Expanded(
-          child: TableView.builder(
-            controller: _tableViewController,
-            columns: columns,
-            rowCount: widget.categories.length,
-            rowHeight: 30,
-            style: const TableViewStyle(
-              dividers: TableViewDividersStyle(
-                vertical: TableViewVerticalDividersStyle(
-                  leading: TableViewVerticalDividerStyle(wiggleCount: 0),
-                  trailing: TableViewVerticalDividerStyle(wiggleCount: 0),
-                ),
-              ),
+        return ExpensesTableItemButton(
+          alignment: date == null ? Alignment.centerLeft : Alignment.center,
+          child: Text(
+              data.text,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontWeight: FontWeight.normal
             ),
-            headerBuilder: (context, contentBuilder) {
-              return contentBuilder(
-                context,
-                (context, column) {
-                  if (column == 0) {
-                    return Container(
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                      child: Text(
-                          AppLocalizations.of(context)!.categories,
-                        style: TextStyle(fontStyle: FontStyle.italic)
-                      ),
-                    );
-                  } else {
-                    DateTime date = beginDate.add(Duration(days: column - 1));
-                    DateFormat format = DateFormat('d.MM');
-                    return ExpensesTableItemButton(
-                      onPressed: () => _showFilteredExpenses(date: date),
-                      child: Text(format.format(date)),
-                    );
-                  }
-                },
-              );
-            },
-            rowBuilder: (context, row, contentBuilder) {
-              var category = widget.categories[row];
-              return contentBuilder(
-                context,
-                (context, column) {
-                  if (column == 0) {
-                    return ExpensesTableItemButton(
-                      onPressed: () => _showFilteredExpenses(categoryId: category['id']),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                        child: Text(
-                          category['name'],
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.normal
-                          ),
-                        ),
-                      ),
-                    );
-                  } else {
-                    DateTime date = beginDate.add(Duration(days: column - 1));
-                    double sum = categoryDateSums[category['id']]?[date] ?? 0.0;
-                    return Container(
-                      color: getBackgroundColor(context, date),
-                      alignment: Alignment.center,
-                      child: ExpensesTableItemButton(
-                        onPressed: () => _showFilteredExpenses(categoryId: category['id'], date: date),
-                        child: Text(sum != 0.0 ? sum.toStringAsFixed(0) : ""),
-                      )
-                    );
-                  }
-                },
-              );
-            },
-            footerBuilder: (context, contentBuilder) {
-              return contentBuilder(
-                context,
-                (context, column) {
-                  if (column == 0) {
-                    return Container(
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                      child: Text(
-                        AppLocalizations.of(context)!.sums,
-                        style: const TextStyle(fontStyle: FontStyle.italic)
-                      ),
-                    );
-                  } else {
-                    DateTime date = beginDate.add(Duration(days: column - 1));
-                    double sum = dateSums[date] ?? 0.0;
-                    return ExpensesTableItemButton(
-                      onPressed: () => _showFilteredExpenses(date: date),
-                      child: Text(
-                        sum.toStringAsFixed(0),
-                        style: const TextStyle(
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.normal
-                        ),
-                      ),
-                    );
-                  }
-                },
-              );
-            },
           ),
-        ),
-      ],
+          onPressed: () => {
+            _showFilteredExpenses(categoryId: category, date: date),
+          }
+        );
+      },
+      fixedCornerCell: CellData(text: ''),
     );
   }
+}
+
+class CellData {
+  late String text;
+  late DateTime? date;
+  late int? categoryId;
+
+  CellData({required this.text, this.date, this.categoryId});
 }
 
 class ScrollCoords {

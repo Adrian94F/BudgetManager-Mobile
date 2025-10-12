@@ -29,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _storage = const FlutterSecureStorage();
 
   var _currentIndex = 0;
+  int? _previousIndex;
   var _monthRelated = true;
   final _monthRelatedViews = 4;
   late List<dynamic> _screens;
@@ -106,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _filter = filter;
       _setScreens();
+      _previousIndex = _currentIndex;
       _currentIndex = 1;
     });
   }
@@ -140,9 +142,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: CircularProgressIndicator()
                 ),
                 appBar: AppBar(
-                  title: Text(
-                    _screenTitles[_currentIndex],
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  title: const Text(
+                    "",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   shadowColor: Theme.of(context).colorScheme.shadow,
                   actions: _monthMenu(context, _monthRelated, []),
@@ -183,32 +185,59 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? "${DateFormat("d.MM").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}"
                 : "${DateFormat("d.MM.yyyy").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}";
 
-            return Scaffold(
-              body: RefreshIndicator(
-                onRefresh: _handleRefreshHard,
-                child: body is Center
-                    ? ListView(
-                        children: [body],
-                      )
-                    : body,
-              ),
-              appBar: AppBar(
-                title: Text(
-                  _currentIndex < 4
-                      ? monthDates
-                      : _screenTitles[_currentIndex],
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            return PopScope(
+              canPop: _previousIndex == null, // Allow popping only if there's no previous index to go back to
+              onPopInvoked: (bool didPop) {
+                if (didPop) {
+                  return; // If the pop was allowed and happened, do nothing.
+                }
+                // If canPop was false, onPopInvoked is called with didPop = false.
+                // This is where you handle the custom back navigation.
+                if (_previousIndex != null) {
+                  setState(() {
+                    _currentIndex = _previousIndex!;
+                    _previousIndex = null; // Clear the previous index after navigating back
+                  });
+                }
+              },
+              child: Scaffold(
+                body: RefreshIndicator(
+                  onRefresh: _handleRefreshHard,
+                  child: body is Center
+                      ? ListView(
+                          children: [body],
+                        )
+                      : body,
                 ),
-                shadowColor: Theme.of(context).colorScheme.shadow,
-                actions: _monthMenu(context, _monthRelated, months),
-              ),
-              bottomNavigationBar: _bottomNavigation(),
-              floatingActionButton: _currentIndex < 4
-                  ? FabMenu(
-                    loadedData: _loadedData,
-                    onRefresh: _handleRefresh,
+                appBar: AppBar(
+                  title: Text(
+                    _currentIndex < 4
+                        ? monthDates
+                        : _screenTitles[_currentIndex],
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  shadowColor: Theme.of(context).colorScheme.shadow,
+                  actions: _monthMenu(context, _monthRelated, months),
+                  leading: _previousIndex != null
+                      ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      setState(() {
+                        _currentIndex = _previousIndex!;
+                        _previousIndex = null; // Clear the previous index
+                      });
+                    },
                   )
                   : null,
+                ),
+                bottomNavigationBar: _bottomNavigation(),
+                floatingActionButton: _currentIndex < 4
+                    ? FabMenu(
+                      loadedData: _loadedData,
+                      onRefresh: _handleRefresh,
+                    )
+                    : null,
+              )
             );
           }
         }
@@ -236,6 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _filter = ExpensesFilter();
           _monthRelated = index < _monthRelatedViews;
+          _previousIndex = null;
           _currentIndex = index;
         });
       },

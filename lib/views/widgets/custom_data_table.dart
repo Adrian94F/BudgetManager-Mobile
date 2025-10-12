@@ -26,7 +26,7 @@ class CustomDataTable<T> extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => CustomDataTableState();
+  State<StatefulWidget> createState() => CustomDataTableState<T>();
 }
 
 class CustomDataTableState<T> extends State<CustomDataTable<T>> {
@@ -36,12 +36,10 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
   final _subTableXController = ScrollController();
 
   Widget _buildChild(double width, T data) => SizedBox(
-      width: width, child: widget.cellBuilder?.call(data) ?? Text('$data'));
+      width: width, child: widget.cellBuilder.call(data));
 
-  Widget _buildFixedCol() => widget.fixedColCells == null
-      ? SizedBox.shrink()
-      : Material(
-    color: Colors.lightBlueAccent,
+  Widget _buildFixedCol() => Material(
+    // color: Colors.lightBlueAccent,
     child: DataTable(
         horizontalMargin: widget.cellMargin,
         columnSpacing: widget.cellSpacing,
@@ -50,19 +48,20 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
         columns: [
           DataColumn(
               label: _buildChild(
-                  widget.fixedColWidth, widget.fixedColCells.first))
+                  widget.fixedColWidth,
+                  widget.fixedColCells.first
+              )
+          )
         ],
         rows: widget.fixedColCells
-            .sublist(widget.fixedRowCells == null ? 1 : 0)
-            .map((c) => DataRow(
+          .sublist(0)
+          .map((c) => DataRow(
             cells: [DataCell(_buildChild(widget.fixedColWidth, c))]))
-            .toList()),
+          .toList()),
   );
 
-  Widget _buildFixedRow() => widget.fixedRowCells == null
-      ? SizedBox.shrink()
-      : Material(
-    color: Colors.greenAccent,
+  Widget _buildFixedRow() => Material(
+    // color: Colors.greenAccent,
     child: DataTable(
         horizontalMargin: widget.cellMargin,
         columnSpacing: widget.cellSpacing,
@@ -76,7 +75,7 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
   );
 
   Widget _buildSubTable() => Material(
-      color: Colors.lightGreenAccent,
+      // color: Colors.lightGreenAccent,
       child: DataTable(
           horizontalMargin: widget.cellMargin,
           columnSpacing: widget.cellSpacing,
@@ -86,19 +85,17 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
               .map((c) => DataColumn(label: _buildChild(widget.cellWidth, c)))
               .toList(),
           rows: widget.rowsCells
-              .sublist(widget.fixedRowCells == null ? 1 : 0)
+              .sublist(0)
               .map((row) => DataRow(
               cells: row
                   .map((c) => DataCell(_buildChild(widget.cellWidth, c)))
                   .toList()))
               .toList()));
 
-  Widget _buildCornerCell() =>
-      widget.fixedColCells == null || widget.fixedRowCells == null
-          ? SizedBox.shrink()
-          : Material(
-        color: Colors.amberAccent,
+  Widget _buildCornerCell() => Material(
+        // color: Colors.amberAccent,
         child: DataTable(
+            dividerThickness: 0,
             horizontalMargin: widget.cellMargin,
             columnSpacing: widget.cellSpacing,
             headingRowHeight: widget.cellHeight,
