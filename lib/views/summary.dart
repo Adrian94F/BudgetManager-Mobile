@@ -178,13 +178,8 @@ class _SummaryScreenState extends State<SummaryScreen> {
     final incomes = widget.data['incomes'] as List<dynamic>;
     final expenses = widget.data['expenses'] as List<dynamic>;
 
-    return Card(
-      elevation: 2,
-      shadowColor: colorScheme.primary.withOpacity(0.2),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      clipBehavior: Clip.antiAlias,
+    return Container(
+      height: 150,
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -194,67 +189,18 @@ class _SummaryScreenState extends State<SummaryScreen> {
             ),
           );
         },
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.primaryContainer.withOpacity(0.3),
-                colorScheme.secondaryContainer.withOpacity(0.3),
-              ],
+        child: AbsorbPointer(
+          child: Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: SimpleBurndownChart(
+                incomes: incomes,
+                expenses: expenses,
+                startDate: startDate,
+                endDate: endDate,
+              ),
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(context)!.burndownChart.toUpperCase(),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      Icons.open_in_full_rounded,
-                      color: colorScheme.primary,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                child: AbsorbPointer(
-                  child: Container(
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface.withValues(alpha: 1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: SimpleBurndownChart(
-                        incomes: incomes,
-                        expenses: expenses,
-                        startDate: startDate,
-                        endDate: endDate,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      )
     );
   }
 
