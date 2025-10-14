@@ -9,50 +9,51 @@ class SimpleBurndownChart extends StatelessWidget {
   final DateTime endDate;
   final bool animate = true;
 
-  const SimpleBurndownChart({super.key, required this.incomes, required this.expenses, required this.startDate, required this.endDate});
+  const SimpleBurndownChart({
+    super.key,
+    required this.incomes,
+    required this.expenses,
+    required this.startDate,
+    required this.endDate,
+  });
 
   @override
   Widget build(BuildContext context) {
-    var seriesList = _createSeries(context, incomes, expenses, startDate, endDate);
-    var primaryMeasureAxis = NumericAxisSpec(
-      tickProviderSpec: const BasicNumericTickProviderSpec(
-        desiredMinTickCount: 6,
-        desiredMaxTickCount: 7
-      ),
-      tickFormatterSpec: BasicNumericTickFormatterSpec(
-        (num? number) {
-          return number != 0
-            ? "${(number! / 1000.0).toStringAsFixed(0)}k"
-            : "0";
+    final chartData = _prepareChartData();
+    final seriesList = _createSeries(context, chartData);
+    final widgetWidth = MediaQuery.of(context).orientation == Orientation.portrait
+        ? MediaQuery.of(context).size.width
+        : MediaQuery.of(context).size.width * 3 / 5;
+    final segmentWidth = widgetWidth / (chartData.dateLabels.length);
+
+    return OrdinalComboChart(
+      seriesList,
+      primaryMeasureAxis: NumericAxisSpec(
+        tickProviderSpec: const BasicNumericTickProviderSpec(
+          desiredMinTickCount: 6,
+          desiredMaxTickCount: 7,
+        ),
+        tickFormatterSpec: BasicNumericTickFormatterSpec((num? number) {
+          if (number == null || number == 0) return "0";
+          return "${(number / 1000.0).toStringAsFixed(0)}k";
         }),
         renderSpec: GridlineRendererSpec(
           labelStyle: TextStyleSpec(
             color: Theme.of(context).brightness == Brightness.light
-              ? MaterialPalette.gray.shade900
-              : MaterialPalette.gray.shade300,
+                ? MaterialPalette.gray.shade900
+                : MaterialPalette.gray.shade300,
           ),
           lineStyle: LineStyleSpec(
             color: Theme.of(context).brightness == Brightness.light
                 ? MaterialPalette.gray.shade200
                 : MaterialPalette.gray.shade900,
-          )
-        )
-    );
-    var domainAxis = const OrdinalAxisSpec(
-          showAxisLine: false,
-          renderSpec: NoneRenderSpec(),
-        );
-
-    var widgetWidth = MediaQuery.of(context).orientation == Orientation.portrait
-        ? MediaQuery.of(context).size.width
-        : MediaQuery.of(context).size.width * 3 / 5;
-    var daysNumber = endDate.difference(startDate).inDays + 2;
-    var segmentWidth = widgetWidth / daysNumber;
-
-    return OrdinalComboChart(
-      seriesList,
-      primaryMeasureAxis: primaryMeasureAxis,
-      domainAxis: domainAxis,
+          ),
+        ),
+      ),
+      domainAxis: const OrdinalAxisSpec(
+        showAxisLine: false,
+        renderSpec: NoneRenderSpec(),
+      ),
       animate: animate,
       defaultRenderer: LineRendererConfig(),
       customSeriesRenderers: [
@@ -60,165 +61,228 @@ class SimpleBurndownChart extends StatelessWidget {
           stackedBarPaddingPx: 0,
           customRendererId: 'customStackedBar',
           groupingType: BarGroupingType.stacked,
-        )
+        ),
       ],
       behaviors: [
-        RangeAnnotation(_getSegments(context, startDate, endDate, segmentWidth)),
-      ]);
+        RangeAnnotation(_getSegments(context, chartData, segmentWidth)),
+      ],
+    );
   }
 
+  _ChartData _prepareChartData() {
+    final normalizedStart = _normalizeDate(startDate);
+    final normalizedEnd = _normalizeDate(endDate);
 
-  static List<Series<BudgetBurndown, String>> _createSeries(BuildContext context, List<dynamic> incomes, List<dynamic> expenses, DateTime startDate, DateTime endDate) {
-    Map<DateTime, double> dailyExpensesSums = {};
-    Map<DateTime, double> monthlyExpensesSums = {};
-    double monthlyExpensesSum = 0.0;
-    double incomesSum = 0.0;
+    final dates = <DateTime>[];
+    DateTime current = normalizedStart;
+
+    while (current.isBefore(normalizedEnd) || current.isAtSameMomentAs(normalizedEnd)) {
+      dates.add(current);
+      current = _addDay(current);
+    }
+
+    final dailyExpensesMap = <String, double>{};
+    final monthlyExpensesMap = <String, double>{};
+    double totalMonthlyExpenses = 0.0;
+    double totalIncome = 0.0;
 
     for (var expense in expenses) {
-      var value = expense['value'];
-      var date = DateTime.parse(expense['date']);
+      final value = (expense['value'] as num).toDouble();
+      final dateStr = expense['date'] as String;
+      final expenseDate = _normalizeDate(DateTime.parse(dateStr));
+      final dateKey = _dateToKey(expenseDate);
+
       if (expense['is_monthly'] == true) {
-        if (monthlyExpensesSums.containsKey(date)) {
-          monthlyExpensesSums[date] = monthlyExpensesSums[date]! + value;
-        } else {
-          monthlyExpensesSums[date] = value;
-        }
-        monthlyExpensesSum += value;
+        monthlyExpensesMap[dateKey] = (monthlyExpensesMap[dateKey] ?? 0.0) + value;
+        totalMonthlyExpenses += value;
       } else {
-        if (dailyExpensesSums.containsKey(date)) {
-          dailyExpensesSums[date] = dailyExpensesSums[date]! + value;
-        } else {
-          dailyExpensesSums[date] = value;
-        }
+        dailyExpensesMap[dateKey] = (dailyExpensesMap[dateKey] ?? 0.0) + value;
       }
     }
 
     for (var income in incomes) {
-      var value = income['value'];
-      incomesSum += value;
+      totalIncome += (income['value'] as num).toDouble();
     }
 
-    var burndownData = [
-      BudgetBurndown("start", incomesSum - monthlyExpensesSum),
-    ];
-    var idealBurndownData = [
-      BudgetBurndown("start", incomesSum - monthlyExpensesSum),
-    ];
-    final idealDailyExpensesSum = (incomesSum - monthlyExpensesSum) / (endDate.difference(startDate).inDays + 1);
-    var dailyExpensesData = [
-      BudgetBurndown("start", 0),
-    ];
-    var monthlyExpensesData = [
-      BudgetBurndown("start", 0),
-    ];
+    final availableBudget = totalIncome - totalMonthlyExpenses;
+    final idealDailyBurn = availableBudget / dates.length;
 
-    var endDateIncreased = endDate.add(const Duration(days: 1));
-    final DateFormat formatter = DateFormat('d.MM');
-    for (var date = startDate;
-         date.isBefore(endDateIncreased);
-         date = date.add(const Duration(days: 1))) {
-      date = DateTime(date.year, date.month, date.day);  // remove hours etc. to compare dates (on summertime change)
-      var yesterdaySum = burndownData[burndownData.length - 1].sum;
-      var dateExpenses = dailyExpensesSums[date] ?? 0.0;
-      var dateMonthlyExpenses = monthlyExpensesSums[date] ?? 0.0;
-      var burndown = yesterdaySum - dateExpenses;
-      var previousIdealBurndown = idealBurndownData[burndownData.length - 1].sum;
-      var idealBurndownValue = previousIdealBurndown - idealDailyExpensesSum;
-      if (idealBurndownValue < 0) {
-        idealBurndownValue = 0;
-      }
-      final dateStr = formatter.format(date);
-      burndownData.add(BudgetBurndown(dateStr, burndown));
-      idealBurndownData.add(BudgetBurndown(dateStr, idealBurndownValue));
-      dailyExpensesData.add(BudgetBurndown(dateStr, dateExpenses));
-      monthlyExpensesData.add(BudgetBurndown(dateStr, dateMonthlyExpenses));
+    final dateLabels = <String>[];
+    final burndownValues = <double>[];
+    final idealBurndownValues = <double>[];
+    final dailyExpensesValues = <double>[];
+    final monthlyExpensesValues = <double>[];
+
+    dateLabels.add("start");
+    burndownValues.add(availableBudget);
+    idealBurndownValues.add(availableBudget);
+    dailyExpensesValues.add(0.0);
+    monthlyExpensesValues.add(0.0);
+
+    final formatter = DateFormat('d.MM');
+    double currentBudget = availableBudget;
+    double currentIdeal = availableBudget;
+
+    for (int i = 0; i < dates.length; i++) {
+      final date = dates[i];
+      final dateKey = _dateToKey(date);
+      final label = formatter.format(date);
+
+      final dailyExpense = dailyExpensesMap[dateKey] ?? 0.0;
+      final monthlyExpense = monthlyExpensesMap[dateKey] ?? 0.0;
+
+      currentBudget -= dailyExpense;
+      currentIdeal -= idealDailyBurn;
+      if (currentIdeal < 0) currentIdeal = 0;
+
+      dateLabels.add(label);
+      burndownValues.add(currentBudget);
+      idealBurndownValues.add(currentIdeal);
+      dailyExpensesValues.add(dailyExpense);
+      monthlyExpensesValues.add(monthlyExpense);
     }
+
+    return _ChartData(
+      dateLabels: dateLabels,
+      dates: [normalizedStart, ...dates],
+      burndownValues: burndownValues,
+      idealBurndownValues: idealBurndownValues,
+      dailyExpensesValues: dailyExpensesValues,
+      monthlyExpensesValues: monthlyExpensesValues,
+    );
+  }
+
+  List<Series<_DataPoint, String>> _createSeries(
+    BuildContext context,
+    _ChartData chartData,
+  ) {
+    final lightMode = Theme.of(context).brightness == Brightness.light;
 
     return [
-      Series<BudgetBurndown, String>(
+      Series<_DataPoint, String>(
         id: 'Monthly',
-        colorFn: (_, __) => Theme.of(context).brightness == Brightness.light
+        colorFn: (_, __) => lightMode
             ? MaterialPalette.indigo.makeShades(5)[4]
             : MaterialPalette.indigo.makeShades(5)[4].darker.darker.darker.darker,
-        domainFn: (BudgetBurndown burndown, _) => burndown.day,
-        measureFn: (BudgetBurndown burndown, _) => burndown.sum,
-        data: monthlyExpensesData
-      )
-        ..setAttribute(rendererIdKey, 'customStackedBar'),
-      Series<BudgetBurndown, String>(
+        domainFn: (_DataPoint point, _) => point.label,
+        measureFn: (_DataPoint point, _) => point.value,
+        data: List.generate(
+          chartData.dateLabels.length,
+          (i) => _DataPoint(chartData.dateLabels[i], chartData.monthlyExpensesValues[i]),
+        ),
+      )..setAttribute(rendererIdKey, 'customStackedBar'),
+      Series<_DataPoint, String>(
         id: 'Daily',
-        colorFn: (_, __) => Theme.of(context).brightness == Brightness.light
-          ? MaterialPalette.indigo.makeShades(5)[3]
-          : MaterialPalette.indigo.makeShades(5)[3].darker.darker,
-        domainFn: (BudgetBurndown burndown, _) => burndown.day,
-        measureFn: (BudgetBurndown burndown, _) => burndown.sum,
-        data: dailyExpensesData,
-      )
-        ..setAttribute(rendererIdKey, 'customStackedBar'),
-      Series<BudgetBurndown, String>(
+        colorFn: (_, __) => lightMode
+            ? MaterialPalette.indigo.makeShades(5)[3]
+            : MaterialPalette.indigo.makeShades(5)[3].darker.darker,
+        domainFn: (_DataPoint point, _) => point.label,
+        measureFn: (_DataPoint point, _) => point.value,
+        data: List.generate(
+          chartData.dateLabels.length,
+          (i) => _DataPoint(chartData.dateLabels[i], chartData.dailyExpensesValues[i]),
+        ),
+      )..setAttribute(rendererIdKey, 'customStackedBar'),
+      Series<_DataPoint, String>(
         id: 'Ideal burndown',
         colorFn: (_, __) => MaterialPalette.indigo.makeShades(5)[2],
         strokeWidthPxFn: (_, __) => 0.5,
         dashPatternFn: (_, __) => [2, 2],
-        domainFn: (BudgetBurndown burndown, _) => burndown.day,
-        measureFn: (BudgetBurndown burndown, _) => burndown.sum,
-        data: idealBurndownData,
+        domainFn: (_DataPoint point, _) => point.label,
+        measureFn: (_DataPoint point, _) => point.value,
+        data: List.generate(
+          chartData.dateLabels.length,
+          (i) => _DataPoint(chartData.dateLabels[i], chartData.idealBurndownValues[i]),
+        ),
       ),
-      Series<BudgetBurndown, String>(
+      Series<_DataPoint, String>(
         id: 'Burndown',
         colorFn: (_, __) => MaterialPalette.indigo.shadeDefault,
-        domainFn: (BudgetBurndown burndown, _) => burndown.day,
-        measureFn: (BudgetBurndown burndown, _) => burndown.sum,
-        data: burndownData,
+        domainFn: (_DataPoint point, _) => point.label,
+        measureFn: (_DataPoint point, _) => point.value,
+        data: List.generate(
+          chartData.dateLabels.length,
+          (i) => _DataPoint(chartData.dateLabels[i], chartData.burndownValues[i]),
+        ),
       ),
     ];
   }
 
-  static List<LineAnnotationSegment<Object>> _getSegments(BuildContext context, DateTime startDate, DateTime endDate, double segmentWidth)
-  {
-    var list = <LineAnnotationSegment<Object>>[];
+  List<LineAnnotationSegment<Object>> _getSegments(
+    BuildContext context,
+    _ChartData chartData,
+    double segmentWidth,
+  ) {
+    final segments = <LineAnnotationSegment<Object>>[];
+    final lightMode = Theme.of(context).brightness == Brightness.light;
+    final today = _normalizeDate(DateTime.now());
 
-    var date = startDate;
-    while (date.difference(endDate).inDays <= 0) {
-      if (date.weekday == 6 || date.weekday == 7) {
-        var dayText = DateFormat("d.MM").format(date);
-        var weekendSegment = LineAnnotationSegment(
-            dayText,
-            RangeAnnotationAxisType.domain,
-            strokeWidthPx: segmentWidth,
-            color: Theme.of(context).brightness == Brightness.light
-                ? MaterialPalette.gray.shade100
-                : MaterialPalette.gray.shade900.darker
-        );
-        list.add(weekendSegment);
-      }
-      date = date.add(const Duration(days: 1));
-    }
+    for (int i = 1; i < chartData.dates.length; i++) {
+      final date = chartData.dates[i];
+      final label = chartData.dateLabels[i];
 
-    if (DateTime.now().isBefore(endDate.add(const Duration(days: 1))) && DateTime.now().isAfter(startDate)) {
-      var todayText = DateFormat("d.MM").format(DateTime.now());
-      var todaySegment = LineAnnotationSegment(
-          todayText,
+      if (date.weekday == DateTime.saturday || date.weekday == DateTime.sunday) {
+        segments.add(LineAnnotationSegment(
+          label,
           RangeAnnotationAxisType.domain,
           strokeWidthPx: segmentWidth,
-          color: Theme
-              .of(context)
-              .brightness == Brightness.light
+          color: lightMode
+              ? MaterialPalette.gray.shade100
+              : MaterialPalette.gray.shade900.darker,
+        ));
+      }
+
+      if (date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day) {
+        segments.add(LineAnnotationSegment(
+          label,
+          RangeAnnotationAxisType.domain,
+          strokeWidthPx: segmentWidth,
+          color: lightMode
               ? MaterialPalette.indigo.makeShades(10)[9]
-              : MaterialPalette.indigo.shadeDefault.darker.darker.darker.darker
-              .darker
-      );
-      list.add(todaySegment);
+              : MaterialPalette.indigo.shadeDefault.darker.darker.darker.darker.darker,
+        ));
+      }
     }
 
-    return list;
+    return segments;
   }
 
+  DateTime _normalizeDate(DateTime date) {
+    return DateTime.utc(date.year, date.month, date.day);
+  }
+
+  DateTime _addDay(DateTime date) {
+    return DateTime.utc(date.year, date.month, date.day + 1);
+  }
+
+  String _dateToKey(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
 }
 
-class BudgetBurndown {
-  final String day;
-  final double sum;
+class _ChartData {
+  final List<String> dateLabels;
+  final List<DateTime> dates;
+  final List<double> burndownValues;
+  final List<double> idealBurndownValues;
+  final List<double> dailyExpensesValues;
+  final List<double> monthlyExpensesValues;
 
-  BudgetBurndown(this.day, this.sum);
+  _ChartData({
+    required this.dateLabels,
+    required this.dates,
+    required this.burndownValues,
+    required this.idealBurndownValues,
+    required this.dailyExpensesValues,
+    required this.monthlyExpensesValues,
+  });
+}
+
+class _DataPoint {
+  final String label;
+  final double value;
+
+  _DataPoint(this.label, this.value);
 }
