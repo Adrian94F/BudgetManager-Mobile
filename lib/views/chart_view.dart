@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../views/widgets/month_burndown_chart.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChartViewScreen extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -15,7 +16,9 @@ class ChartViewScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Budget Burndown Chart'),
+        title: Text(
+          AppLocalizations.of(context)!.burndownChart,
+        ),
         elevation: 0,
       ),
       body: SafeArea(

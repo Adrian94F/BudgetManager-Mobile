@@ -69,5 +69,6 @@
     "copy": "Kopiuj",
     "statistics": "Statystyki",
     "nextMonth": "Następny miesiąc",
-    "prevMonth": "Poprzedni miesiąc"
+    "prevMonth": "Poprzedni miesiąc",
+    "burndownChart": "Wykres wypalenia"
 }
