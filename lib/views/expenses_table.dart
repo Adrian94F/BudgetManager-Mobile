@@ -112,20 +112,23 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     widget.openFilteredListCallback(filter);
   }
 
-  Color getBackgroundColor(BuildContext context, DateTime date) {
+  Color getCellBackgroundColor(BuildContext context, DateTime date) {
     var now = DateTime.now();
     var isToday = date.isAtSameMomentAs(DateTime(now.year, now.month, now.day));
     var isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
-    var bgColor = isToday
-      ? (Theme.of(context).brightness == Brightness.light
-        ? Colors.indigo[100]!
-        : Colors.grey[800]!)
-      : (isWeekend
-        ? Theme.of(context).brightness == Brightness.light
-          ? Colors.indigo[50]!
-          : Colors.grey[900]!
-        : Colors.transparent);
-    return bgColor;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (isToday) {
+      return colorScheme.primaryContainer.withOpacity(0.3);
+    } else if (isWeekend) {
+      return colorScheme.surfaceVariant.withOpacity(0.3);
+    }
+    return Colors.transparent;
+  }
+
+  String _getDayAcronym(DateTime date) {
+    const dayAcronyms = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    return dayAcronyms[date.weekday - 1];
   }
 
 
@@ -170,20 +173,25 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
 
     // Create the fixed column headers (Category names) with CellData
     final List<CellData> _fixedColCells = widget.categories.map((c) {
+      final categorySum = categorySums[c['id']] ?? 0.0;
       return CellData(
         text: c['name'].toString(),
+        secondaryText: categorySum > 0 ? categorySum.round().toString() : '',
         categoryId: c['id'],
         date: null,
       );
     }).toList();
 
-    // Create the fixed row headers (Dates) with CellData
+    // Create the fixed row headers (Dates with day acronyms) with CellData
     final List<CellData> _fixedRowCells = List.generate(
       endDate.difference(beginDate).inDays,
           (i) {
         final date = beginDate.add(Duration(days: i));
+        final dayAcronym = _getDayAcronym(date);
+        final dateNum = date.day.toString();
         return CellData(
-          text: DateFormat('d.MM').format(date),
+          text: dateNum,
+          secondaryText: dayAcronym,
           categoryId: null,
           date: date,
         );
@@ -194,31 +202,159 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       rowsCells: _rowsCells,
       fixedColCells: _fixedColCells,
       fixedRowCells: _fixedRowCells,
-      fixedColWidth: 120,
-      cellWidth: 60,
-      cellHeight: 30,
-      cellMargin: 0,
-      cellSpacing: 0,
+      fixedColWidth: 140,
+      cellWidth: 56,
+      cellHeight: 56,
+      cellMargin: 2,
+      cellSpacing: 2,
       cellBuilder: (data) {
         final category = data.categoryId;
         final date = data.date;
+        final colorScheme = Theme.of(context).colorScheme;
 
         if (category == null && date == null) {
-          return Container();
+          return Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              border: Border(
+                right: BorderSide(color: colorScheme.outlineVariant, width: 1),
+                bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+              ),
+            ),
+          );
         }
 
-        return ExpensesTableItemButton(
-          alignment: date == null ? Alignment.centerLeft : Alignment.center,
-          child: Text(
-              data.text,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontWeight: FontWeight.normal
+        final isHeader = category == null || date == null;
+        final isColumnHeader = date == null;
+        final isRowHeader = category == null;
+
+        if (isRowHeader && date != null) {
+          final now = DateTime.now();
+          final isToday = date.isAtSameMomentAs(DateTime(now.year, now.month, now.day));
+          final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+
+          return Container(
+            decoration: BoxDecoration(
+              color: isToday
+                ? colorScheme.primaryContainer
+                : colorScheme.surface,
+              border: Border(
+                bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  data.secondaryText ?? '',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isWeekend ? FontWeight.w600 : FontWeight.w500,
+                    color: isToday
+                      ? colorScheme.onPrimaryContainer
+                      : (isWeekend ? colorScheme.primary : colorScheme.onSurfaceVariant),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: isToday ? colorScheme.primary : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      data.text,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                        color: isToday
+                          ? colorScheme.onPrimary
+                          : (isWeekend ? colorScheme.primary : colorScheme.onSurface),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (isColumnHeader) {
+          return Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              border: Border(
+                right: BorderSide(color: colorScheme.outlineVariant, width: 1),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  data.text,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                if (data.secondaryText != null && data.secondaryText!.isNotEmpty)
+                  Text(
+                    data.secondaryText!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }
+
+        final bgColor = getCellBackgroundColor(context, date!);
+        final hasExpense = data.text.isNotEmpty;
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _showFilteredExpenses(categoryId: category, date: date),
+            child: Container(
+              decoration: BoxDecoration(
+                color: bgColor,
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withOpacity(0.5),
+                  width: 0.5,
+                ),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Center(
+                child: hasExpense
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        data.text,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    )
+                  : null,
+              ),
             ),
           ),
-          onPressed: () => {
-            _showFilteredExpenses(categoryId: category, date: date),
-          }
         );
       },
       fixedCornerCell: CellData(text: ''),
@@ -228,10 +364,11 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
 
 class CellData {
   late String text;
+  late String? secondaryText;
   late DateTime? date;
   late int? categoryId;
 
-  CellData({required this.text, this.date, this.categoryId});
+  CellData({required this.text, this.secondaryText, this.date, this.categoryId});
 }
 
 class ScrollCoords {
