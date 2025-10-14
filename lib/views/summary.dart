@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';import 'package:intl/intl.dart';
 import '../tools/formatters.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../views/widgets/month_burndown_chart.dart';
+import '../views/chart_view.dart';
 
 class Summary {
   final Map<String, dynamic> data;
@@ -83,6 +85,8 @@ class _SummaryScreenState extends State<SummaryScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       children: [
+        _buildBurndownChartCard(context),
+        const SizedBox(height: 16),
         _buildIncomeCard(
             context,
             summary.salarySum,
@@ -163,6 +167,116 @@ class _SummaryScreenState extends State<SummaryScreen> {
       amount: amount,
       isOutlined: true,
       children: children,
+    );
+  }
+
+  Widget _buildBurndownChartCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final startDate = DateTime.parse(widget.data['month']['start_date']);
+    final endDate = DateTime.parse(widget.data['month']['end_date']);
+    final incomes = widget.data['incomes'] as List<dynamic>;
+    final expenses = widget.data['expenses'] as List<dynamic>;
+
+    return Card(
+      elevation: 2,
+      shadowColor: colorScheme.primary.withOpacity(0.2),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChartViewScreen(data: widget.data),
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.primaryContainer.withOpacity(0.3),
+                colorScheme.secondaryContainer.withOpacity(0.3),
+              ],
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.trending_down_rounded,
+                        color: colorScheme.onPrimary,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'BUDGET BURNDOWN',
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tap to expand chart',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.open_in_full_rounded,
+                      color: colorScheme.primary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                child: Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SimpleBurndownChart(
+                      incomes: incomes,
+                      expenses: expenses,
+                      startDate: startDate,
+                      endDate: endDate,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
