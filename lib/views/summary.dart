@@ -88,9 +88,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
       children: [
         _buildBurndownChartCard(context),
         const SizedBox(height: 16),
-        _buildBalanceCard(
-            context,
-            summary.balance),
+        _buildBalanceCard(context, summary),
         const SizedBox(height: 16),
         _buildIncomeCard(
             context,
@@ -103,17 +101,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
             summary.regularExpensesSum,
             summary.monthlyExpensesSum,
             summary.expensesSum),
-        const SizedBox(height: 16),
-        if (DateTime.now().isAfter(summary.startDate) &&
-            DateTime.now().isBefore(summary.endDate.add(const Duration(days: 1))))
-          _buildCurrentMonthCard(
-              context,
-              summary.startDate,
-              summary.endDate,
-              summary.incomesSum,
-              summary.monthlyExpensesSum,
-              summary.dailyExpensesBeforeTodaySum,
-              summary.todayExpensesSum),
         const SizedBox(height: 70),
       ],
     );
@@ -205,59 +192,87 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 
-  Widget _buildBalanceCard(BuildContext context, double balance) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      elevation: 0,
-      color: balance >= 0 ? colorScheme.primaryContainer : colorScheme.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.balance.toUpperCase(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: balance >= 0 ? colorScheme.onPrimaryContainer : colorScheme.onErrorContainer,
-                letterSpacing: 0.8,
-              ),
-            ),
-            Text(
-              Formatters.currencyFormatter.format(balance),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: balance >= 0 ? colorScheme.onPrimaryContainer : colorScheme.onErrorContainer,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCurrentMonthCard(BuildContext context, DateTime startDate, DateTime endDate, double incomesSum, double monthlyExpensesSum, double dailyExpensesBeforeTodaySum, double todayExpensesSum) {
+  Widget _buildBalanceCard(BuildContext context, Summary summary) {
     final l10n = AppLocalizations.of(context)!;
-    var daysLeft = endDate.difference(DateTime.now()).inDays + 1;
-    var balanceBeforeToday = incomesSum - monthlyExpensesSum - dailyExpensesBeforeTodaySum;
-    var maxDailyExpenses = (daysLeft > 0) ? balanceBeforeToday / daysLeft : 0.0;
-    var todayExpensesPercent = (maxDailyExpenses > 0) ? (todayExpensesSum / maxDailyExpenses * 100) : 0.0;
-    String spentTodayValue = Formatters.currencyFormatter.format(todayExpensesSum);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final balance = summary.balance;
+    final daysLeft = summary.endDate.difference(DateTime.now()).inDays + 1;
+    final balanceBeforeToday = summary.incomesSum - summary.monthlyExpensesSum - summary.dailyExpensesBeforeTodaySum;
+    final maxDailyExpenses = (daysLeft > 0) ? balanceBeforeToday / daysLeft : 0.0;
+    final todayExpensesPercent = (maxDailyExpenses > 0) ? (summary.todayExpensesSum / maxDailyExpenses * 100) : 0.0;
+    String spentTodayValue = Formatters.currencyFormatter.format(summary.todayExpensesSum);
     if (balanceBeforeToday > 0 && maxDailyExpenses > 0) {
       spentTodayValue += " (${todayExpensesPercent.round()}%)";
     }
 
-    return _buildInfoCard(
-      context: context,
-      title: l10n.daysLeft,
-      amount: daysLeft.toDouble(),
-      isOutlined: true,
-      isCurrency: false,
-      isInteger: true,
-      children: [
-        if (balanceBeforeToday > 0)
-          _buildDetailRow(l10n.maxDailyExpense, maxDailyExpenses),
-        _buildDetailRow(l10n.spentToday, spentTodayValue, isCurrency: false),
-      ],
+    final children = <Widget>[];
+    final isCurrent = DateTime.now().isAfter(summary.startDate) &&
+        DateTime.now().isBefore(summary.endDate.add(const Duration(days: 1)));
+    if (isCurrent) {
+      if (balanceBeforeToday > 0) {
+        children.add(_buildDetailRow(l10n.maxDailyExpense, maxDailyExpenses,
+            valueColor: colorScheme.onPrimaryContainer));
+      }
+      children.add(_buildDetailRow(l10n.spentToday, spentTodayValue,
+          isCurrency: false, valueColor: colorScheme.onPrimaryContainer));
+      children.add(_buildDetailRow(l10n.daysLeft, daysLeft.toString(),
+          isCurrency: false, valueColor: colorScheme.onPrimaryContainer));
+    }
+
+    return Card(
+      elevation: 0,
+      color: balance >= 0
+          ? isCurrent
+            ? colorScheme.primaryContainer
+            : Theme.of(context).brightness == Brightness.light
+              ? Colors.green.shade100
+              : Colors.green.shade900
+          : colorScheme.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.balance.toUpperCase(),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: balance >= 0
+                        ? isCurrent
+                          ? colorScheme.onPrimaryContainer
+                          : Theme.of(context).brightness == Brightness.light
+                            ? Colors.green.shade800
+                            : Colors.green.shade100
+                        : colorScheme.onErrorContainer,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  Text(
+                    Formatters.currencyFormatter.format(balance),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: balance >= 0
+                          ? isCurrent
+                            ? colorScheme.onPrimaryContainer
+                            : Theme.of(context).brightness == Brightness.light
+                              ? Colors.green.shade800
+                              : Colors.green.shade100
+                          : colorScheme.onErrorContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              )
+            ),
+            if (children.isNotEmpty)
+              const Divider(indent: 16, endIndent: 16),
+            ...children
+          ],
+        ),
+      ),
     );
   }
 
@@ -335,15 +350,17 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 
-  Widget _buildDetailRow(String name, dynamic value, {bool isCurrency = true}) {
+  Widget _buildDetailRow(String name, dynamic value, {bool isCurrency = true, Color? valueColor}) {
     return ListTile(
       dense: true,
+      visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
       title: Text(name),
       trailing: Text(
         isCurrency ? Formatters.currencyFormatter.format(value) : value.toString(),
-        style: const TextStyle(
+        style: TextStyle(
             fontWeight: FontWeight.w500,
-            fontSize: 14
+            fontSize: 14,
+          color: valueColor
         ),
       ),
     );
