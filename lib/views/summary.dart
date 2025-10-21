@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../tools/formatters.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:budget_manager/l10n/app_localizations.dart';
 import '../views/widgets/month_burndown_chart.dart';
 import '../views/chart_view.dart';
 
@@ -192,7 +192,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
         child: AbsorbPointer(
           child: Padding(
               padding: const EdgeInsets.only(left: 8),
-              child: SimpleBurndownChart(
+              child: MonthBurndownChart(
                 incomes: incomes,
                 expenses: expenses,
                 startDate: startDate,

@@ -1,7 +1,6 @@
 import 'package:budget_manager/views/widgets/custom_data_table.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:budget_manager/l10n/app_localizations.dart';
 import 'package:material_table_view/material_table_view.dart';
 
 import 'expenses_list.dart';

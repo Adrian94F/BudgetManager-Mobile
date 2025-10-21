@@ -2,14 +2,14 @@ import 'package:community_charts_flutter/community_charts_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class SimpleBurndownChart extends StatelessWidget {
+class MonthBurndownChart extends StatelessWidget {
   final List<dynamic> incomes;
   final List<dynamic> expenses;
   final DateTime startDate;
   final DateTime endDate;
   final bool animate = true;
 
-  const SimpleBurndownChart({
+  const MonthBurndownChart({
     super.key,
     required this.incomes,
     required this.expenses,

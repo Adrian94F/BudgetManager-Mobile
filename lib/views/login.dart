@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:budget_manager/services/auth_service.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:budget_manager/l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

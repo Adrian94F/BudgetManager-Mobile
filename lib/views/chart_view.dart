@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../views/widgets/month_burndown_chart.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:budget_manager/l10n/app_localizations.dart';
 
 class ChartViewScreen extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -24,7 +24,7 @@ class ChartViewScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: SimpleBurndownChart(
+          child: MonthBurndownChart(
             incomes: incomes,
             expenses: expenses,
             startDate: startDate,

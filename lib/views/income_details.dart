@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../services/auth_service.dart';import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../services/auth_service.dart';
+import 'package:budget_manager/l10n/app_localizations.dart';
 
 class IncomeDetails extends StatefulWidget {
   final Map<String, dynamic>? income;
