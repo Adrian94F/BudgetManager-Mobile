@@ -34,7 +34,7 @@ class ExpensesTableView extends StatefulWidget {
 class _ExpensesTableViewState extends State<ExpensesTableView> {
   final TableViewController _tableViewController = TableViewController();
   final _columnWidth = 45.0;
-
+  bool _showSums = true;
 
   @override
   void initState() {
@@ -67,7 +67,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   }
 
   void _scrollToXY(ScrollCoords coords) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    /*WidgetsBinding.instance.addPostFrameCallback((_) {
       if (coords.x != null) {
         _tableViewController.horizontalScrollController.animateTo(
           coords.x!,
@@ -82,7 +82,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         curve: Curves.easeInOut,
       );
       }
-    });
+    });*/
   }
 
   void _showFilteredExpenses({int? categoryId, DateTime? date}) {
@@ -126,11 +126,207 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   }
 
   String _getDayAcronym(DateTime date) {
-    const dayAcronyms = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final dayAcronyms = [
+      AppLocalizations.of(context)!.shortMonday,
+      AppLocalizations.of(context)!.shortTuesday,
+      AppLocalizations.of(context)!.shortWednesday,
+      AppLocalizations.of(context)!.shortThursday,
+      AppLocalizations.of(context)!.shortFriday,
+      AppLocalizations.of(context)!.shortSaturday,
+      AppLocalizations.of(context)!.shortSunday
+    ];
     return dayAcronyms[date.weekday - 1];
   }
 
+  Widget _cellBuilder(CellData? data) {
+    if (data == null) {
+      return Container();
+    }
 
+    final category = data.categoryId;
+    final date = data.date;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final isHeader = category == null || date == null;
+    final isColumnHeader = date == null;
+    final isRowHeader = category == null;
+
+    // Sums toggle
+    if (isColumnHeader && isRowHeader) {
+      return Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+        ),
+        child: Center(
+          child: IconButton(
+            icon: Icon(
+              _showSums ? Icons.visibility : Icons.visibility_off,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            onPressed: () {
+              setState(() {
+                _showSums = !_showSums;
+              });
+            },
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(),
+          ),
+        ),
+      );
+    }
+
+    // Header row with dates
+    if (isRowHeader && date != null && data.isSum != true) {
+      final now = DateTime.now();
+      final isToday = date.isAtSameMomentAs(DateTime(now.year, now.month, now.day));
+      final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showFilteredExpenses(date: date),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isToday
+                  ? colorScheme.primaryContainer
+                  : colorScheme.surface,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  data.secondaryText ?? '',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: isWeekend ? FontWeight.w600 : FontWeight.w500,
+                    color: isToday
+                        ? colorScheme.onPrimaryContainer
+                        : (isWeekend ? colorScheme.primary : colorScheme.onSurfaceVariant),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: isToday ? colorScheme.primary : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      data.text,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                        color: isToday
+                            ? colorScheme.onPrimary
+                            : (isWeekend ? colorScheme.primary : colorScheme.onSurface),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Categories column
+    if (isColumnHeader && data.isSum != true) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: data.isClickable == true ? () => _showFilteredExpenses(categoryId: category) : null,
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  data.text,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 10,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Category or date sum cell
+    if (data.isSum == true) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap:() {
+            if (category != null) {
+              _showFilteredExpenses(categoryId: category);
+            } else if (date != null) {
+              _showFilteredExpenses(date: date);
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceVariant.withOpacity(0.3),
+            ),
+            child: Center(
+              child: data.text.isNotEmpty
+                  ? Text(
+                    data.text,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                  : null,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final bgColor = getCellBackgroundColor(context, date!);
+    final hasExpense = data.text.isNotEmpty;
+    final sum = (data.sum ?? 0) > 0 || hasExpense;
+
+    // category + date sum cell
+    return Material(
+      color: bgColor,
+      child: InkWell(
+        onTap: () => _showFilteredExpenses(categoryId: category, date: date),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+          ),
+          child: Center(
+            child: hasExpense
+                ? Text(
+              data.text,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: colorScheme.onSurface,
+              ),
+            )
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -172,14 +368,28 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
 
     // Create the fixed column headers (Category names) with CellData
     final List<CellData> _fixedColCells = widget.categories.map((c) {
-      final categorySum = categorySums[c['id']] ?? 0.0;
       return CellData(
         text: c['name'].toString(),
-        secondaryText: categorySum > 0 ? categorySum.round().toString() : '',
+        secondaryText: null,
         categoryId: c['id'],
         date: null,
+        isClickable: true,
       );
     }).toList();
+    _fixedColCells.add(CellData(text: '', isSum: true));
+
+    // Add sum row at the bottom
+    final List<CellData> _fixedColCellsSums = widget.categories.map((c) {
+      final categorySum = categorySums[c['id']] ?? 0.0;
+      return CellData(
+        text: _showSums && categorySum > 0 ? categorySum.round().toString() : '',
+        categoryId: c['id'],
+        date: null,
+        isSum: true,
+        sum: categorySum,
+      );
+    }).toList();
+    _fixedColCellsSums.add(CellData(text: '', isSum: true));
 
     // Create the fixed row headers (Dates with day acronyms) with CellData
     final List<CellData> _fixedRowCells = List.generate(
@@ -188,174 +398,55 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         final date = beginDate.add(Duration(days: i));
         final dayAcronym = _getDayAcronym(date);
         final dateNum = date.day.toString();
+        final dateSum = dateSums[date] ?? 0.0;
         return CellData(
           text: dateNum,
           secondaryText: dayAcronym,
           categoryId: null,
           date: date,
+          isClickable: true,
         );
       },
     );
 
+    // Add sum row to main data grid
+    final dateSumRow = List.generate(endDate.difference(beginDate).inDays, (dayIndex) {
+      final date = beginDate.add(Duration(days: dayIndex));
+      final sum = dateSums[date] ?? 0.0;
+      return CellData(
+        text: _showSums && sum > 0 ? sum.round().toString() : '',
+        date: date,
+        isSum: true,
+        sum: sum,
+      );
+    });
+    // dateSumRow.add(CellData(text: '', isSum: true));
+    _rowsCells.add(dateSumRow);
+
+    // Add sum column to each row
+    /*for (int i = 0; i < widget.categories.length; i++) {
+      final categoryId = widget.categories[i]['id'];
+      final sum = categorySums[categoryId] ?? 0.0;
+      _rowsCells[i].add(CellData(
+        text: _showSums && sum > 0 ? sum.round().toString() : '',
+        categoryId: categoryId,
+        isSum: true,
+        sum: sum,
+      ));
+    }*/
+
     return CustomDataTable<CellData>(
       rowsCells: _rowsCells,
       fixedColCells: _fixedColCells,
+      fixedRightColCells: _fixedColCellsSums,
+      showSums: _showSums,
       fixedRowCells: _fixedRowCells,
       fixedColWidth: 140,
-      cellWidth: 56,
-      cellHeight: 56,
-      cellMargin: 2,
-      cellSpacing: 2,
-      cellBuilder: (data) {
-        final category = data.categoryId;
-        final date = data.date;
-        final colorScheme = Theme.of(context).colorScheme;
-
-        if (category == null && date == null) {
-          return Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              border: Border(
-                right: BorderSide(color: colorScheme.outlineVariant, width: 1),
-                bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-              ),
-            ),
-          );
-        }
-
-        final isHeader = category == null || date == null;
-        final isColumnHeader = date == null;
-        final isRowHeader = category == null;
-
-        if (isRowHeader && date != null) {
-          final now = DateTime.now();
-          final isToday = date.isAtSameMomentAs(DateTime(now.year, now.month, now.day));
-          final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
-
-          return Container(
-            decoration: BoxDecoration(
-              color: isToday
-                ? colorScheme.primaryContainer
-                : colorScheme.surface,
-              border: Border(
-                bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  data.secondaryText ?? '',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isWeekend ? FontWeight.w600 : FontWeight.w500,
-                    color: isToday
-                      ? colorScheme.onPrimaryContainer
-                      : (isWeekend ? colorScheme.primary : colorScheme.onSurfaceVariant),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: isToday ? colorScheme.primary : Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      data.text,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
-                        color: isToday
-                          ? colorScheme.onPrimary
-                          : (isWeekend ? colorScheme.primary : colorScheme.onSurface),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (isColumnHeader) {
-          return Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              border: Border(
-                right: BorderSide(color: colorScheme.outlineVariant, width: 1),
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  data.text,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                if (data.secondaryText != null && data.secondaryText!.isNotEmpty)
-                  Text(
-                    data.secondaryText!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-              ],
-            ),
-          );
-        }
-
-        final bgColor = getCellBackgroundColor(context, date!);
-        final hasExpense = data.text.isNotEmpty;
-
-        return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => _showFilteredExpenses(categoryId: category, date: date),
-            child: Container(
-              decoration: BoxDecoration(
-                color: bgColor,
-                border: Border.all(
-                  color: colorScheme.outlineVariant.withOpacity(0.5),
-                  width: 0.5,
-                ),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Center(
-                child: hasExpense
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        data.text,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                    )
-                  : null,
-              ),
-            ),
-          ),
-        );
-      },
+      cellWidth: 45,
+      cellHeight: 45,
+      cellMargin: 0,
+      cellSpacing: 0,
+      cellBuilder: _cellBuilder,
       fixedCornerCell: CellData(text: ''),
     );
   }
@@ -366,8 +457,19 @@ class CellData {
   late String? secondaryText;
   late DateTime? date;
   late int? categoryId;
+  late bool? isSum;
+  late double? sum;
+  late bool? isClickable;
 
-  CellData({required this.text, this.secondaryText, this.date, this.categoryId});
+  CellData({
+    required this.text,
+    this.secondaryText,
+    this.date,
+    this.categoryId,
+    this.isSum,
+    this.sum,
+    this.isClickable,
+  });
 }
 
 class ScrollCoords {

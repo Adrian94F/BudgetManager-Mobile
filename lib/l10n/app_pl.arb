@@ -70,5 +70,12 @@
     "statistics": "Statystyki",
     "nextMonth": "Następny miesiąc",
     "prevMonth": "Poprzedni miesiąc",
-    "burndownChart": "Wykres wypalenia"
+    "burndownChart": "Wykres wypalenia",
+    "shortMonday": "P",
+    "shortTuesday": "W",
+    "shortWednesday": "Ś",
+    "shortThursday": "C",
+    "shortFriday": "P",
+    "shortSaturday": "S",
+    "shortSunday": "N"
 }

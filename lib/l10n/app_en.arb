@@ -82,5 +82,12 @@
   "statistics": "Statistics",
   "nextMonth": "Next month",
   "prevMonth": "Previous month",
-  "burndownChart": "Burndown chart"
+  "burndownChart": "Burndown chart",
+  "shortMonday": "M",
+  "shortTuesday": "T",
+  "shortWednesday": "W",
+  "shortThursday": "T",
+  "shortFriday": "F",
+  "shortSaturday": "S",
+  "shortSunday": "S"
 }

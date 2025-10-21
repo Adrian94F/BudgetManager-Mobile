@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 class CustomDataTable<T> extends StatefulWidget {
   final T fixedCornerCell;
   final List<T> fixedColCells;
+  List<T> fixedRightColCells;
+  bool showSums;
   final List<T> fixedRowCells;
   final List<List<T>> rowsCells;
-  final Widget Function(T data) cellBuilder;
+  final Widget Function(T? data) cellBuilder;
   final double fixedColWidth;
   final double cellWidth;
   final double cellHeight;
@@ -15,6 +17,7 @@ class CustomDataTable<T> extends StatefulWidget {
   CustomDataTable({
     required this.fixedCornerCell,
     required this.fixedColCells,
+    required this.fixedRightColCells,
     required this.fixedRowCells,
     required this.rowsCells,
     required this.cellBuilder,
@@ -23,6 +26,7 @@ class CustomDataTable<T> extends StatefulWidget {
     this.cellWidth = 120.0,
     this.cellMargin = 10.0,
     this.cellSpacing = 10.0,
+    this.showSums = true,
   });
 
   @override
@@ -35,12 +39,14 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
   final _subTableYController = ScrollController();
   final _subTableXController = ScrollController();
 
-  Widget _buildChild(double width, T data) => SizedBox(
+  final double hiddenCellWidth = 0;
+
+  Widget _buildChild(double width, T? data) => SizedBox(
       width: width, child: widget.cellBuilder.call(data));
 
   Widget _buildFixedCol() => Material(
-    // color: Colors.lightBlueAccent,
     child: DataTable(
+        dividerThickness: 0,
         horizontalMargin: widget.cellMargin,
         columnSpacing: widget.cellSpacing,
         headingRowHeight: widget.cellHeight,
@@ -54,15 +60,40 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
           )
         ],
         rows: widget.fixedColCells
-          .sublist(0)
-          .map((c) => DataRow(
+            .sublist(0)
+            .map((c) => DataRow(
             cells: [DataCell(_buildChild(widget.fixedColWidth, c))]))
-          .toList()),
+            .toList()),
+  );
+
+  Widget _buildFixedRightCol() => Material(
+    child: DataTable(
+        dividerThickness: 0,
+        horizontalMargin: widget.cellMargin,
+        columnSpacing: widget.cellSpacing,
+        headingRowHeight: widget.cellHeight,
+        dataRowHeight: widget.cellHeight,
+        columns: [
+          DataColumn(
+              label: _buildChild(
+                  widget.showSums ? widget.cellWidth : hiddenCellWidth,
+                  widget.showSums ? widget.fixedRightColCells.first : null
+              )
+          )
+        ],
+        rows: widget.fixedRightColCells
+            .sublist(0)
+            .map((c) => DataRow(
+            cells: [DataCell(_buildChild(widget.showSums
+                ? widget.cellWidth
+                : hiddenCellWidth,
+              c))]))
+            .toList()),
   );
 
   Widget _buildFixedRow() => Material(
-    // color: Colors.greenAccent,
     child: DataTable(
+        dividerThickness: 0,
         horizontalMargin: widget.cellMargin,
         columnSpacing: widget.cellSpacing,
         headingRowHeight: widget.cellHeight,
@@ -75,8 +106,8 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
   );
 
   Widget _buildSubTable() => Material(
-      // color: Colors.lightGreenAccent,
       child: DataTable(
+          dividerThickness: 0,
           horizontalMargin: widget.cellMargin,
           columnSpacing: widget.cellSpacing,
           headingRowHeight: widget.cellHeight,
@@ -92,7 +123,7 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
                   .toList()))
               .toList()));
 
-  Widget _buildCornerCell() => Material(
+  Widget _buildCornerCell({bool wide = false}) => Material(
         // color: Colors.amberAccent,
         child: DataTable(
             dividerThickness: 0,
@@ -103,7 +134,12 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
             columns: [
               DataColumn(
                   label: _buildChild(
-                      widget.fixedColWidth, widget.fixedCornerCell))
+                      wide
+                        ? widget.fixedColWidth
+                        : widget.showSums
+                          ? widget.cellWidth
+                          : hiddenCellWidth,
+                      widget.fixedCornerCell))
             ],
             rows: []),
       );
@@ -142,11 +178,17 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
                 ),
               ),
             ),
+            SingleChildScrollView(
+              controller: _columnController,
+              scrollDirection: Axis.vertical,
+              physics: NeverScrollableScrollPhysics(),
+              child: _buildFixedRightCol(),
+            )
           ],
         ),
         Row(
           children: <Widget>[
-            _buildCornerCell(),
+            _buildCornerCell(wide: true),
             Flexible(
               child: SingleChildScrollView(
                 controller: _rowController,
@@ -155,6 +197,7 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
                 child: _buildFixedRow(),
               ),
             ),
+            _buildCornerCell(),
           ],
         ),
       ],
