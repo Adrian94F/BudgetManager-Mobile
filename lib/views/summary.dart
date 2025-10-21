@@ -197,6 +197,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                 expenses: expenses,
                 startDate: startDate,
                 endDate: endDate,
+                isSimplified: true
               ),
             ),
           ),

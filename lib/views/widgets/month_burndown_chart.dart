@@ -7,14 +7,16 @@ class MonthBurndownChart extends StatelessWidget {
   final List<dynamic> expenses;
   final DateTime startDate;
   final DateTime endDate;
+  bool isSimplified;
   final bool animate = true;
 
-  const MonthBurndownChart({
+  MonthBurndownChart({
     super.key,
     required this.incomes,
     required this.expenses,
     required this.startDate,
     required this.endDate,
+    this.isSimplified = false
   });
 
   @override
@@ -29,14 +31,14 @@ class MonthBurndownChart extends StatelessWidget {
     return OrdinalComboChart(
       seriesList,
       primaryMeasureAxis: NumericAxisSpec(
-        tickProviderSpec: const BasicNumericTickProviderSpec(
-          desiredMinTickCount: 6,
-          desiredMaxTickCount: 7,
-        ),
-        tickFormatterSpec: BasicNumericTickFormatterSpec((num? number) {
-          if (number == null || number == 0) return "0";
-          return "${(number / 1000.0).toStringAsFixed(0)}k";
-        }),
+          tickProviderSpec: BasicNumericTickProviderSpec(
+            desiredMinTickCount: isSimplified ? 1 : 6,
+            desiredMaxTickCount: isSimplified ? 1 : 7,
+          ),
+          tickFormatterSpec: BasicNumericTickFormatterSpec((num? number) {
+            if (number == null || number == 0) return "0";
+            return "${(number / 1000.0).toStringAsFixed(0)}k";
+          }),
         renderSpec: GridlineRendererSpec(
           labelStyle: TextStyleSpec(
             color: Theme.of(context).brightness == Brightness.light
@@ -129,7 +131,9 @@ class MonthBurndownChart extends StatelessWidget {
       final label = formatter.format(date);
 
       final dailyExpense = dailyExpensesMap[dateKey] ?? 0.0;
-      final monthlyExpense = monthlyExpensesMap[dateKey] ?? 0.0;
+      final monthlyExpense = isSimplified
+          ? 0.0
+          : monthlyExpensesMap[dateKey] ?? 0.0;
 
       currentBudget -= dailyExpense;
       currentIdeal -= idealDailyBurn;
