@@ -90,17 +90,17 @@ class _SummaryScreenState extends State<SummaryScreen> {
         const SizedBox(height: 16),
         _buildBalanceCard(context, summary),
         const SizedBox(height: 16),
-        _buildIncomeCard(
-            context,
-            summary.salarySum,
-            summary.otherIncomesSum,
-            summary.incomesSum),
-        const SizedBox(height: 16),
         _buildExpensesCard(
             context,
             summary.regularExpensesSum,
             summary.monthlyExpensesSum,
             summary.expensesSum),
+        const SizedBox(height: 16),
+        _buildIncomeCard(
+            context,
+            summary.salarySum,
+            summary.otherIncomesSum,
+            summary.incomesSum),
         const SizedBox(height: 70),
       ],
     );
