@@ -33,7 +33,7 @@ class ExpensesTableView extends StatefulWidget {
 
 class _ExpensesTableViewState extends State<ExpensesTableView> {
   final TableViewController _tableViewController = TableViewController();
-  final _columnWidth = 45.0;
+  // final _columnWidth = 45.0;
   bool _showSums = true;
 
   @override
@@ -61,9 +61,8 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     final screenWidth = MediaQuery.of(context).size.width.toInt();
     final columnsOffset = ((screenWidth - 150) / 45 * 0.6).floor();
     final todayColumnIndex = today.difference(beginDate).inDays - columnsOffset;
-    final scrollOffset = todayColumnIndex * _columnWidth;
-
-    _scrollToXY(ScrollCoords(x: scrollOffset));
+    // final scrollOffset = todayColumnIndex * _columnWidth;
+    // _scrollToXY(ScrollCoords(x: scrollOffset));
   }
 
   void _scrollToXY(ScrollCoords coords) {
@@ -151,31 +150,6 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     final isColumnHeader = date == null;
     final isRowHeader = category == null;
 
-    // Sums toggle
-    if (isColumnHeader && isRowHeader) {
-      return Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-        ),
-        child: Center(
-          child: IconButton(
-            icon: Icon(
-              _showSums ? Icons.visibility : Icons.visibility_off,
-              size: 18,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            onPressed: () {
-              setState(() {
-                _showSums = !_showSums;
-              });
-            },
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints(),
-          ),
-        ),
-      );
-    }
-
     // Header row with dates
     if (isRowHeader && date != null && data.isSum != true) {
       final now = DateTime.now();
@@ -197,8 +171,10 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
               children: [
                 Text(
                   data.secondaryText ?? '',
+                  overflow: TextOverflow.clip,
+                  maxLines: 1,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: isWeekend ? FontWeight.w600 : FontWeight.w500,
                     color: isToday
                         ? colorScheme.onPrimaryContainer
@@ -238,7 +214,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       return Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: data.isClickable == true ? () => _showFilteredExpenses(categoryId: category) : null,
+          onTap: () => _showFilteredExpenses(categoryId: category),
           child: Container(
             decoration: BoxDecoration(
               color: colorScheme.surface,
@@ -250,8 +226,8 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
               children: [
                 Text(
                   data.text,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
+                  overflow: TextOverflow.clip,
+                  maxLines: 1,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 10,
@@ -278,13 +254,15 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
             }
           },
           child: Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant.withOpacity(0.3),
-            ),
+            // decoration: BoxDecoration(
+            //   color: colorScheme.surfaceVariant.withOpacity(0.3),
+            // ),
             child: Center(
               child: data.text.isNotEmpty
                   ? Text(
                     data.text,
+                    overflow: TextOverflow.clip,
+                    maxLines: 1,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -300,7 +278,6 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
 
     final bgColor = getCellBackgroundColor(context, date!);
     final hasExpense = data.text.isNotEmpty;
-    final sum = (data.sum ?? 0) > 0 || hasExpense;
 
     // category + date sum cell
     return Material(
@@ -356,7 +333,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     final List<List<CellData>> _rowsCells = widget.categories.map((category) {
       final int categoryId = category['id'];
       return List.generate(endDate.difference(beginDate).inDays, (dayIndex) {
-        final date = beginDate.add(Duration(days: dayIndex));
+        var date = DateUtils.dateOnly(beginDate.add(Duration(days: dayIndex, hours: 1))); // Add 1 hour for daytime change
         final sum = categoryDateSums[categoryId]?[date] ?? 0.0;
         return CellData(
           text: sum != 0.0 ? sum.round().toString() : '',
@@ -373,7 +350,6 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         secondaryText: null,
         categoryId: c['id'],
         date: null,
-        isClickable: true,
       );
     }).toList();
     _fixedColCells.add(CellData(text: '', isSum: true));
@@ -404,7 +380,6 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
           secondaryText: dayAcronym,
           categoryId: null,
           date: date,
-          isClickable: true,
         );
       },
     );
@@ -441,13 +416,8 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       fixedRightColCells: _fixedColCellsSums,
       showSums: _showSums,
       fixedRowCells: _fixedRowCells,
-      fixedColWidth: 140,
-      cellWidth: 45,
-      cellHeight: 45,
-      cellMargin: 0,
-      cellSpacing: 0,
       cellBuilder: _cellBuilder,
-      fixedCornerCell: CellData(text: ''),
+      // fixedCornerCell: CellData(text: ''),
     );
   }
 }
@@ -459,7 +429,6 @@ class CellData {
   late int? categoryId;
   late bool? isSum;
   late double? sum;
-  late bool? isClickable;
 
   CellData({
     required this.text,
@@ -468,7 +437,6 @@ class CellData {
     this.categoryId,
     this.isSum,
     this.sum,
-    this.isClickable,
   });
 }
 

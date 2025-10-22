@@ -1,33 +1,30 @@
 import 'package:flutter/material.dart';
 
 class CustomDataTable<T> extends StatefulWidget {
-  final T fixedCornerCell;
+  // final T fixedCornerCell;
   final List<T> fixedColCells;
   List<T> fixedRightColCells;
   bool showSums;
   final List<T> fixedRowCells;
   final List<List<T>> rowsCells;
   final Widget Function(T? data) cellBuilder;
-  final double fixedColWidth;
-  final double cellWidth;
-  final double cellHeight;
-  final double cellMargin;
-  final double cellSpacing;
 
   CustomDataTable({
-    required this.fixedCornerCell,
+    // required this.fixedCornerCell,
     required this.fixedColCells,
     required this.fixedRightColCells,
     required this.fixedRowCells,
     required this.rowsCells,
     required this.cellBuilder,
-    this.fixedColWidth = 60.0,
-    this.cellHeight = 56.0,
-    this.cellWidth = 120.0,
-    this.cellMargin = 10.0,
-    this.cellSpacing = 10.0,
     this.showSums = true,
   });
+
+  double cellHeight = 30.0;
+  double cellWidth = 40.0;
+  double fixedRowHeight = 60.0;
+  double fixedColWidth = 150.0;
+  double cellMargin = 0.0;
+  double cellSpacing = 0.0;
 
   @override
   State<StatefulWidget> createState() => CustomDataTableState<T>();
@@ -42,107 +39,135 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
   final double hiddenCellWidth = 0;
 
   Widget _buildChild(double width, T? data) => SizedBox(
-      width: width, child: widget.cellBuilder.call(data));
+      width: width,
+      height: widget.cellHeight,
+      child: widget.cellBuilder.call(data)
+  );
 
   Widget _buildFixedCol() => Material(
-    child: DataTable(
-        dividerThickness: 0,
-        horizontalMargin: widget.cellMargin,
-        columnSpacing: widget.cellSpacing,
-        headingRowHeight: widget.cellHeight,
-        dataRowHeight: widget.cellHeight,
-        columns: [
-          DataColumn(
-              label: _buildChild(
-                  widget.fixedColWidth,
-                  widget.fixedColCells.first
-              )
-          )
-        ],
-        rows: widget.fixedColCells
-            .sublist(0)
-            .map((c) => DataRow(
-            cells: [DataCell(_buildChild(widget.fixedColWidth, c))]))
-            .toList()),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: widget.fixedColCells.map((cell) {
+        return Container(
+          width: widget.fixedColWidth + (widget.cellMargin * 2),
+          height: widget.cellHeight,
+          padding: EdgeInsets.symmetric(horizontal: widget.cellMargin),
+          child: _buildChild(widget.fixedColWidth, cell),
+        );
+      }).toList(),
+    ),
   );
 
   Widget _buildFixedRightCol() => Material(
-    child: DataTable(
-        dividerThickness: 0,
-        horizontalMargin: widget.cellMargin,
-        columnSpacing: widget.cellSpacing,
-        headingRowHeight: widget.cellHeight,
-        dataRowHeight: widget.cellHeight,
-        columns: [
-          DataColumn(
-              label: _buildChild(
-                  widget.showSums ? widget.cellWidth : hiddenCellWidth,
-                  widget.showSums ? widget.fixedRightColCells.first : null
-              )
-          )
-        ],
-        rows: widget.fixedRightColCells
-            .sublist(0)
-            .map((c) => DataRow(
-            cells: [DataCell(_buildChild(widget.showSums
-                ? widget.cellWidth
-                : hiddenCellWidth,
-              c))]))
-            .toList()),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: widget.fixedRightColCells.map((cell) {
+        final cellWidth = widget.showSums ? widget.cellWidth : hiddenCellWidth;
+        return Container(
+          width: cellWidth + (widget.cellMargin * 2),
+          height: widget.cellHeight,
+          padding: EdgeInsets.symmetric(horizontal: widget.cellMargin),
+          child: _buildChild(cellWidth, cell),
+        );
+      }).toList(),
+    ),
   );
 
   Widget _buildFixedRow() => Material(
-    child: DataTable(
-        dividerThickness: 0,
-        horizontalMargin: widget.cellMargin,
-        columnSpacing: widget.cellSpacing,
-        headingRowHeight: widget.cellHeight,
-        dataRowHeight: widget.cellHeight,
-        columns: widget.fixedRowCells
-            .map((c) =>
-            DataColumn(label: _buildChild(widget.cellWidth, c)))
-            .toList(),
-        rows: []),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: widget.fixedRowCells.map((cell) {
+        return Container(
+          width: widget.cellWidth + (widget.cellMargin * 2),
+          height: widget.fixedRowHeight,
+          padding: EdgeInsets.symmetric(horizontal: widget.cellMargin),
+          child: _buildChild(widget.cellWidth, cell),
+        );
+      }).toList(),
+    ),
   );
 
   Widget _buildSubTable() => Material(
-      child: DataTable(
-          dividerThickness: 0,
-          horizontalMargin: widget.cellMargin,
-          columnSpacing: widget.cellSpacing,
-          headingRowHeight: widget.cellHeight,
-          dataRowHeight: widget.cellHeight,
-          columns: widget.rowsCells.first
-              .map((c) => DataColumn(label: _buildChild(widget.cellWidth, c)))
-              .toList(),
-          rows: widget.rowsCells
-              .sublist(0)
-              .map((row) => DataRow(
-              cells: row
-                  .map((c) => DataCell(_buildChild(widget.cellWidth, c)))
-                  .toList()))
-              .toList()));
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: widget.rowsCells.map((row) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: row.map((cell) {
+            return Container(
+              width: widget.cellWidth + (widget.cellMargin * 2),
+              height: widget.cellHeight,
+              padding: EdgeInsets.symmetric(horizontal: widget.cellMargin),
+              child: _buildChild(widget.cellWidth, cell),
+            );
+          }).toList(),
+        );
+      }).toList(),
+    ),
+  );
 
-  Widget _buildCornerCell({bool wide = false}) => Material(
-        // color: Colors.amberAccent,
-        child: DataTable(
-            dividerThickness: 0,
-            horizontalMargin: widget.cellMargin,
-            columnSpacing: widget.cellSpacing,
-            headingRowHeight: widget.cellHeight,
-            dataRowHeight: widget.cellHeight,
-            columns: [
-              DataColumn(
-                  label: _buildChild(
-                      wide
-                        ? widget.fixedColWidth
-                        : widget.showSums
-                          ? widget.cellWidth
-                          : hiddenCellWidth,
-                      widget.fixedCornerCell))
-            ],
-            rows: []),
-      );
+  Widget _buildCornerSumCell({bool wide = false, showButton = false, required BuildContext context}) => Material(
+    child: Container(
+      width: (wide ? widget.fixedColWidth : (widget.showSums ? widget.cellWidth : hiddenCellWidth)) + (widget.cellMargin * 2),
+      height: widget.fixedRowHeight,
+      padding: EdgeInsets.symmetric(horizontal: widget.cellMargin),
+      child: SizedBox(
+        width: wide
+            ? widget.fixedColWidth
+            : widget.showSums
+            ? widget.cellWidth
+            : hiddenCellWidth,
+        height: widget.cellHeight,
+        child: Container(
+          decoration: BoxDecoration(
+          // color: colorScheme.surface,
+          ),
+          child: Center(
+            child: showButton
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 6,
+                    children: [
+                      Text(
+                        "Σ",
+                        style: TextStyle(
+                          fontSize: 28,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Switch(
+                          thumbIcon: WidgetStateProperty<Icon>.fromMap(
+                            <WidgetStatesConstraint, Icon>{
+                              WidgetState.selected: Icon(Icons.visibility),
+                              WidgetState.any: Icon(Icons.close),
+                            },
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              widget.showSums = value;
+                            });
+                          },
+                          value: widget.showSums
+                      )
+                    ]
+                  )
+                : const Text(
+                    "Σ",
+                    style: TextStyle(
+                      fontSize: 26,
+                    ),
+                  ),
+          ),
+        ),
+      )
+    ),
+  );
 
   @override
   void initState() {
@@ -155,8 +180,19 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
     });
   }
 
+  void setColumnsWidth(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    widget.fixedColWidth = screenWidth / 3.0;
+    widget.cellWidth = (screenWidth - widget.fixedColWidth) / 7.0;
+    if (MediaQuery.of(context).orientation == Orientation.landscape) {
+      widget.fixedColWidth /= 2.0;
+      widget.cellWidth /= 2.0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    setColumnsWidth(context);
     return Stack(
       children: <Widget>[
         Row(
@@ -188,7 +224,7 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
         ),
         Row(
           children: <Widget>[
-            _buildCornerCell(wide: true),
+            _buildCornerSumCell(context: context, wide: true, showButton: true),
             Flexible(
               child: SingleChildScrollView(
                 controller: _rowController,
@@ -197,7 +233,7 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
                 child: _buildFixedRow(),
               ),
             ),
-            _buildCornerCell(),
+            _buildCornerSumCell(context: context),
           ],
         ),
       ],
