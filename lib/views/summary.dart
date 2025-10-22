@@ -1,3 +1,4 @@
+import 'package:budget_manager/views/widgets/info_card.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../tools/formatters.dart';
@@ -122,13 +123,12 @@ class _SummaryScreenState extends State<SummaryScreen> {
       children.add(_buildDetailRow(AppLocalizations.of(context)!.otherIncome, otherIncomesSum));
     }
 
-    return _buildInfoCard(
-      context: context,
-      icon: Icons.arrow_downward_rounded,
+    return InfoCard(
+      icon: Icons.arrow_upward_rounded,
       title: title,
       amount: amount,
       isOutlined: true,
-      children: children,
+      children: children
     );
   }
 
@@ -148,18 +148,16 @@ class _SummaryScreenState extends State<SummaryScreen> {
       children.add(_buildDetailRow(AppLocalizations.of(context)!.recurrentExpenses, monthlySum));
     }
 
-    return _buildInfoCard(
-      context: context,
-      icon: Icons.arrow_upward_rounded,
+    return InfoCard(
+      icon: Icons.arrow_downward_rounded,
       title: title,
       amount: amount,
       isOutlined: true,
-      children: children,
+      children: children
     );
   }
 
   Widget _buildBurndownChartCard(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final startDate = DateTime.parse(widget.data['month']['start_date']);
     final endDate = DateTime.parse(widget.data['month']['end_date']);
     final incomes = widget.data['incomes'] as List<dynamic>;
@@ -195,6 +193,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
   Widget _buildBalanceCard(BuildContext context, Summary summary) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
 
     final balance = summary.balance;
     final daysLeft = summary.endDate.difference(DateTime.now()).inDays + 1;
@@ -220,133 +219,25 @@ class _SummaryScreenState extends State<SummaryScreen> {
           isCurrency: false, valueColor: colorScheme.onPrimaryContainer));
     }
 
-    return Card(
-      elevation: 0,
-      color: balance >= 0
-          ? isCurrent
-            ? colorScheme.primaryContainer
-            : Theme.of(context).brightness == Brightness.light
-              ? Colors.green.shade100
-              : Colors.green.shade900
-          : colorScheme.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.balance.toUpperCase(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: balance >= 0
-                        ? isCurrent
-                          ? colorScheme.onPrimaryContainer
-                          : Theme.of(context).brightness == Brightness.light
-                            ? Colors.green.shade800
-                            : Colors.green.shade100
-                        : colorScheme.onErrorContainer,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  Text(
-                    Formatters.currencyFormatter.format(balance),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: balance >= 0
-                          ? isCurrent
-                            ? colorScheme.onPrimaryContainer
-                            : Theme.of(context).brightness == Brightness.light
-                              ? Colors.green.shade800
-                              : Colors.green.shade100
-                          : colorScheme.onErrorContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              )
-            ),
-            if (children.isNotEmpty)
-              const Divider(indent: 16, endIndent: 16),
-            ...children
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard({
-    required BuildContext context,
-    IconData? icon,
-    required String title,
-    double? amount,
-    List<Widget> children = const [],
-    bool isOutlined = false,
-    bool isCurrency = true,
-    bool isInteger = false,
-  }) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      elevation: isOutlined ? 0 : 1,
-      shape: isOutlined
-          ? RoundedRectangleBorder(
-        side: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-      )
-          : null,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  if (icon != null)
-                    Icon(icon, color: colorScheme.primary),
-                  if (icon != null)
-                    const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title.toUpperCase(),
-                      style: textTheme.titleMedium?.copyWith(
-                        color: colorScheme.primary,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ),
-                  if (amount != null)
-                    if (isCurrency)
-                      Text(
-                        Formatters.currencyFormatter.format(amount),
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                  if (isInteger)
-                    Text(
-                      amount!.toInt().toString(),
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (children.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              const Divider(indent: 16, endIndent: 16),
-              ...children,
-            ],
-          ],
-        ),
-      ),
+    return InfoCard(
+        title: AppLocalizations.of(context)!.balance.toUpperCase(),
+        amount: balance,
+        isOutlined: false,
+        children: children,
+        color: balance >= 0
+            ? isCurrent
+              ? colorScheme.primaryContainer
+              : brightness == Brightness.light
+                ? Colors.green.shade100
+                : Colors.green.shade900
+            : colorScheme.errorContainer,
+        textColor: balance >= 0
+            ? isCurrent
+              ? colorScheme.onPrimaryContainer
+              : brightness == Brightness.light
+                ? Colors.green.shade800
+                : Colors.green.shade100
+            : colorScheme.onErrorContainer
     );
   }
 
