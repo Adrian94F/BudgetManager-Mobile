@@ -16,7 +16,7 @@ class ExpensesTableView extends StatefulWidget {
   final void Function(ScrollCoords coords) saveTableCoords;
   final ScrollCoords? scrollCoords;
 
-  const ExpensesTableView({
+  ExpensesTableView({
     Key? key,
     required this.expenses,
     required this.categories,
@@ -25,7 +25,16 @@ class ExpensesTableView extends StatefulWidget {
     required this.openFilteredListCallback,
     required this.saveTableCoords,
     required this.scrollCoords,
-  }) : super(key: key);
+  }) : super(key: key) {
+    beginDate = DateTime.parse(month['start_date']);
+    endDate = endDate = DateTime.parse(month['end_date']).add(const Duration(days: 1));
+  }
+
+  late Map<DateTime, double> dateSums = {};
+  late Map<int, double> categorySums = {};
+  late Map<int, Map<DateTime, double>> categoryDateSums = {};
+  late DateTime beginDate;
+  late DateTime endDate;
 
   @override
   _ExpensesTableViewState createState() => _ExpensesTableViewState();
@@ -311,36 +320,26 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         : '';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (widget.expenses.isEmpty || widget.categories.isEmpty) {
-      return const Center(child: Text("No data available"));
-    }
-
-    final beginDate = DateTime.parse(widget.month['start_date']);
-    final endDate = DateTime.parse(widget.month['end_date']).add(const Duration(days: 1));
-
-    final Map<DateTime, double> dateSums = {};
-    final Map<int, double> categorySums = {};
-    final Map<int, Map<DateTime, double>> categoryDateSums = {};
-
+  void calculateSums() {
     for (var expense in widget.expenses) {
       var category = expense['category'];
       DateTime date = DateTime.parse(expense['date']);
       double value = (expense['value'] as num).toDouble();
 
-      dateSums[date] = (dateSums[date] ?? 0.0) + value;
-      categorySums[category] = (categorySums[category] ?? 0.0) + value;
-      categoryDateSums[category] = categoryDateSums[category] ?? {};
-      categoryDateSums[category]![date] = (categoryDateSums[category]![date] ?? 0.0) + value;
+      widget.dateSums[date] = (widget.dateSums[date] ?? 0.0) + value;
+      widget.categorySums[category] = (widget.categorySums[category] ?? 0.0) + value;
+      widget.categoryDateSums[category] = widget.categoryDateSums[category] ?? {};
+      widget.categoryDateSums[category]![date] = (widget.categoryDateSums[category]![date] ?? 0.0) + value;
     }
+  }
 
+  List<List<CellData>> createRowsCells() {
     // Create the main data grid with CellData objects
-    final List<List<CellData>> _rowsCells = widget.categories.map((category) {
+    return widget.categories.map((category) {
       final int categoryId = category['id'];
-      return List.generate(endDate.difference(beginDate).inDays, (dayIndex) {
-        var date = DateUtils.dateOnly(beginDate.add(Duration(days: dayIndex, hours: 1))); // Add 1 hour for daytime change
-        final sum = categoryDateSums[categoryId]?[date] ?? 0.0;
+      return List.generate(widget.endDate.difference(widget.beginDate).inDays, (dayIndex) {
+        var date = DateUtils.dateOnly(widget.beginDate.add(Duration(days: dayIndex, hours: 1))); // Add 1 hour for daytime change
+        final sum = widget.categoryDateSums[categoryId]?[date] ?? 0.0;
         return CellData(
           text: formatNumber(sum),
           categoryId: categoryId,
@@ -348,9 +347,11 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         );
       });
     }).toList();
+  }
 
+  List<CellData> createFixedColCells() {
     // Create the fixed column headers (Category names) with CellData
-    final List<CellData> _fixedColCells = widget.categories.map((c) {
+    return widget.categories.map((c) {
       return CellData(
         text: c['name'].toString(),
         secondaryText: null,
@@ -358,10 +359,12 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         date: null,
       );
     }).toList();
+  }
 
+  List<CellData> createFixedColCellsSums() {
     // Create sum column for categories
-    final List<CellData> _fixedColCellsSums = widget.categories.map((c) {
-      final categorySum = categorySums[c['id']] ?? 0.0;
+    return widget.categories.map((c) {
+      final categorySum = widget.categorySums[c['id']] ?? 0.0;
       return CellData(
         text: formatNumber(categorySum),
         categoryId: c['id'],
@@ -370,15 +373,17 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         sum: categorySum,
       );
     }).toList();
+  }
 
+  List<CellData> createFixedRowCells() {
     // Create the fixed row headers (Dates with day acronyms) with CellData
-    final List<CellData> _fixedRowCells = List.generate(
-      endDate.difference(beginDate).inDays,
+    return List.generate(
+      widget.endDate.difference(widget.beginDate).inDays,
           (i) {
-        final date = beginDate.add(Duration(days: i));
+        final date = widget.beginDate.add(Duration(days: i));
         final dayAcronym = _getDayAcronym(date);
         final dateNum = date.day.toString();
-        final dateSum = dateSums[date] ?? 0.0;
+        final dateSum = widget.dateSums[date] ?? 0.0;
         return CellData(
           text: dateNum,
           secondaryText: dayAcronym,
@@ -387,11 +392,13 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         );
       },
     );
+  }
 
+  List<CellData> createFixedRowCellsSums() {
     // Create fixed bottom row with date sums
-    final List<CellData> _fixedBottomRowCells = List.generate(endDate.difference(beginDate).inDays, (dayIndex) {
-      final date = beginDate.add(Duration(days: dayIndex));
-      final sum = dateSums[date] ?? 0.0;
+    return List.generate(widget.endDate.difference(widget.beginDate).inDays, (dayIndex) {
+      final date = widget.beginDate.add(Duration(days: dayIndex));
+      final sum = widget.dateSums[date] ?? 0.0;
       return CellData(
         text: formatNumber(sum),
         date: date,
@@ -399,15 +406,22 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         sum: sum,
       );
     });
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    if (widget.expenses.isEmpty || widget.categories.isEmpty) {
+      return const Center(child: Text("No data available"));
+    }
+
+    calculateSums();
     return CustomDataTable<CellData>(
-      rowsCells: _rowsCells,
-      fixedColCells: _fixedColCells,
-      fixedRightColCells: _fixedColCellsSums,
-      fixedRowCells: _fixedRowCells,
-      fixedBottomRowCells: _fixedBottomRowCells,
+      rowsCells: createRowsCells(),
+      fixedColCells: createFixedColCells(),
+      fixedRightColCells: createFixedColCellsSums(),
+      fixedRowCells: createFixedColCells(),
+      fixedBottomRowCells: createFixedRowCellsSums(),
       cellBuilder: _cellBuilder,
-      // fixedCornerCell: CellData(text: ''),
     );
   }
 }
