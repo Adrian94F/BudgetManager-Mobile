@@ -208,7 +208,7 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
   void setColumnsWidth(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     widget.fixedColWidth = screenWidth / 3.0;
-    widget.cellWidth = (screenWidth - widget.fixedColWidth) / 7.0;
+    widget.cellWidth = (screenWidth - widget.fixedColWidth) / 8.0;
     if (MediaQuery.of(context).orientation == Orientation.landscape) {
       widget.fixedColWidth /= 2.0;
       widget.cellWidth /= 2.0;
