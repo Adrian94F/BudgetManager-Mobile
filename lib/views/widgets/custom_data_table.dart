@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 
 class CustomDataTable<T> extends StatefulWidget {
-  // final T fixedCornerCell;
   final List<T> fixedColCells;
   List<T> fixedRightColCells;
-  bool showSums;
   final List<T> fixedRowCells;
+  List<T> fixedBottomRowCells;
   final List<List<T>> rowsCells;
   final Widget Function(T? data) cellBuilder;
 
   CustomDataTable({
-    // required this.fixedCornerCell,
     required this.fixedColCells,
     required this.fixedRightColCells,
     required this.fixedRowCells,
+    required this.fixedBottomRowCells,
     required this.rowsCells,
-    required this.cellBuilder,
-    this.showSums = true,
+    required this.cellBuilder
   });
 
   double cellHeight = 30.0;
@@ -25,6 +23,7 @@ class CustomDataTable<T> extends StatefulWidget {
   double fixedColWidth = 150.0;
   double cellMargin = 0.0;
   double cellSpacing = 0.0;
+  bool showSums = true;
 
   @override
   State<StatefulWidget> createState() => CustomDataTableState<T>();
@@ -33,6 +32,7 @@ class CustomDataTable<T> extends StatefulWidget {
 class CustomDataTableState<T> extends State<CustomDataTable<T>> {
   final _columnController = ScrollController();
   final _rowController = ScrollController();
+  final _bottomRowController = ScrollController();
   final _subTableYController = ScrollController();
   final _subTableXController = ScrollController();
 
@@ -90,6 +90,21 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
     ),
   );
 
+  Widget _buildFixedBottomRow() => Material(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: widget.fixedBottomRowCells.map((cell) {
+        return Container(
+          width: widget.cellWidth + (widget.cellMargin * 2),
+          height: widget.showSums ? widget.cellHeight : 0.0,
+          padding: EdgeInsets.symmetric(horizontal: widget.cellMargin),
+          child: _buildChild(widget.cellWidth, cell),
+        );
+      }).toList(),
+    ),
+  );
+
   Widget _buildSubTable() => Material(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,62 +126,71 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
     ),
   );
 
-  Widget _buildCornerSumCell({bool wide = false, showButton = false, required BuildContext context}) => Material(
-    child: Container(
-      width: (wide ? widget.fixedColWidth : (widget.showSums ? widget.cellWidth : hiddenCellWidth)) + (widget.cellMargin * 2),
-      height: widget.fixedRowHeight,
-      padding: EdgeInsets.symmetric(horizontal: widget.cellMargin),
-      child: SizedBox(
+  Widget _buildCornerSumCell({
+    bool wide = false,
+    high = false,
+    showButton = false,
+    required BuildContext context,
+    Widget? child}) => Material(
+      child: Container(
         width: wide
             ? widget.fixedColWidth
             : widget.showSums
-            ? widget.cellWidth
-            : hiddenCellWidth,
-        height: widget.cellHeight,
-        child: Container(
-          decoration: BoxDecoration(
-          // color: colorScheme.surface,
-          ),
-          child: Center(
-            child: showButton
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 6,
-                    children: [
-                      Text(
-                        "Σ",
-                        style: TextStyle(
-                          fontSize: 28,
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Switch(
-                          thumbIcon: WidgetStateProperty<Icon>.fromMap(
-                            <WidgetStatesConstraint, Icon>{
-                              WidgetState.selected: Icon(Icons.visibility),
-                              WidgetState.any: Icon(Icons.close),
-                            },
+              ? widget.cellWidth
+              : hiddenCellWidth
+            + widget.cellMargin * 2,
+        height: widget.showSums || showButton
+            ? high
+              ? widget.fixedRowHeight
+              : widget.cellHeight
+            : 0.0,
+        padding: EdgeInsets.symmetric(horizontal: widget.cellMargin),
+        child: SizedBox(
+          width: wide
+              ? widget.fixedColWidth
+              : widget.showSums
+              ? widget.cellWidth
+              : hiddenCellWidth,
+          height: widget.cellHeight,
+          child: Container(
+            decoration: BoxDecoration(
+            // color: colorScheme.surface,
+            ),
+            child: Center(
+              child: showButton
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 6,
+                      children: [
+                        Text(
+                          "Σ",
+                          style: TextStyle(
+                            fontSize: 28,
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
                           ),
-                          onChanged: (value) {
-                            setState(() {
-                              widget.showSums = value;
-                            });
-                          },
-                          value: widget.showSums
-                      )
-                    ]
-                  )
-                : const Text(
-                    "Σ",
-                    style: TextStyle(
-                      fontSize: 26,
-                    ),
-                  ),
+                        ),
+                        Switch(
+                            thumbIcon: WidgetStateProperty<Icon>.fromMap(
+                              <WidgetStatesConstraint, Icon>{
+                                WidgetState.selected: Icon(Icons.visibility),
+                                WidgetState.any: Icon(Icons.close),
+                              },
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                widget.showSums = value;
+                              });
+                            },
+                            value: widget.showSums
+                        )
+                      ]
+                    )
+                  : child,
+            ),
           ),
-        ),
-      )
-    ),
+        )
+      ),
   );
 
   @override
@@ -174,6 +198,7 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
     super.initState();
     _subTableXController.addListener(() {
       _rowController.jumpTo(_subTableXController.position.pixels);
+      _bottomRowController.jumpTo(_subTableXController.position.pixels);
     });
     _subTableYController.addListener(() {
       _columnController.jumpTo(_subTableYController.position.pixels);
@@ -193,44 +218,74 @@ class CustomDataTableState<T> extends State<CustomDataTable<T>> {
   @override
   Widget build(BuildContext context) {
     setColumnsWidth(context);
-    return Stack(
+    return Column(
       children: <Widget>[
         Row(
           children: <Widget>[
-            SingleChildScrollView(
-              controller: _columnController,
-              scrollDirection: Axis.vertical,
-              physics: NeverScrollableScrollPhysics(),
-              child: _buildFixedCol(),
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                controller: _subTableXController,
-                scrollDirection: Axis.horizontal,
-                child: SingleChildScrollView(
-                  controller: _subTableYController,
-                  scrollDirection: Axis.vertical,
-                  child: _buildSubTable(),
-                ),
-              ),
-            ),
-            SingleChildScrollView(
-              controller: _columnController,
-              scrollDirection: Axis.vertical,
-              physics: NeverScrollableScrollPhysics(),
-              child: _buildFixedRightCol(),
-            )
-          ],
-        ),
-        Row(
-          children: <Widget>[
-            _buildCornerSumCell(context: context, wide: true, showButton: true),
+            _buildCornerSumCell( context: context, wide: true, showButton: true, high: true),
             Flexible(
               child: SingleChildScrollView(
                 controller: _rowController,
                 scrollDirection: Axis.horizontal,
                 physics: NeverScrollableScrollPhysics(),
                 child: _buildFixedRow(),
+              ),
+            ),
+            _buildCornerSumCell(
+              context: context,
+              child: const Text(
+                "Σ",
+                style: TextStyle(
+                  fontSize: 26,
+                ),
+              )
+            ),
+          ],
+        ),
+        Expanded(
+          child: Row(
+            children: <Widget>[
+              SingleChildScrollView(
+                controller: _columnController,
+                scrollDirection: Axis.vertical,
+                physics: NeverScrollableScrollPhysics(),
+                child: _buildFixedCol(),
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  controller: _subTableXController,
+                  scrollDirection: Axis.horizontal,
+                  child: SingleChildScrollView(
+                    controller: _subTableYController,
+                    scrollDirection: Axis.vertical,
+                    child: _buildSubTable(),
+                  ),
+                ),
+              ),
+              SingleChildScrollView(
+                controller: _columnController,
+                scrollDirection: Axis.vertical,
+                physics: NeverScrollableScrollPhysics(),
+                child: _buildFixedRightCol(),
+              )
+            ],
+          ),
+        ),
+        Row(
+          children: <Widget>[
+            _buildCornerSumCell(
+              context: context,
+              wide: true,
+              child: const Text(
+                "Σ"
+              )
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                controller: _bottomRowController,
+                scrollDirection: Axis.horizontal,
+                physics: NeverScrollableScrollPhysics(),
+                child: _buildFixedBottomRow(),
               ),
             ),
             _buildCornerSumCell(context: context),

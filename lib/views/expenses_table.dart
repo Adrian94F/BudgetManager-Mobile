@@ -34,7 +34,6 @@ class ExpensesTableView extends StatefulWidget {
 class _ExpensesTableViewState extends State<ExpensesTableView> {
   final TableViewController _tableViewController = TableViewController();
   // final _columnWidth = 45.0;
-  bool _showSums = true;
 
   @override
   void initState() {
@@ -146,7 +145,6 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     final date = data.date;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final isHeader = category == null || date == null;
     final isColumnHeader = date == null;
     final isRowHeader = category == null;
 
@@ -291,18 +289,26 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
           child: Center(
             child: hasExpense
                 ? Text(
-              data.text,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface,
-              ),
-            )
+                    data.text,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface,
+                    ),
+                  )
                 : null,
           ),
         ),
       ),
     );
+  }
+
+  String formatNumber(double number) {
+    return number != 0.0
+        ? number < 1000
+          ? number.round().toString()
+          : "${(number.round() / 1000.0).toStringAsFixed(0)}k"
+        : '';
   }
 
   @override
@@ -336,7 +342,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         var date = DateUtils.dateOnly(beginDate.add(Duration(days: dayIndex, hours: 1))); // Add 1 hour for daytime change
         final sum = categoryDateSums[categoryId]?[date] ?? 0.0;
         return CellData(
-          text: sum != 0.0 ? sum.round().toString() : '',
+          text: formatNumber(sum),
           categoryId: categoryId,
           date: date,
         );
@@ -352,20 +358,18 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         date: null,
       );
     }).toList();
-    _fixedColCells.add(CellData(text: '', isSum: true));
 
-    // Add sum row at the bottom
+    // Create sum column for categories
     final List<CellData> _fixedColCellsSums = widget.categories.map((c) {
       final categorySum = categorySums[c['id']] ?? 0.0;
       return CellData(
-        text: _showSums && categorySum > 0 ? categorySum.round().toString() : '',
+        text: formatNumber(categorySum),
         categoryId: c['id'],
         date: null,
         isSum: true,
         sum: categorySum,
       );
     }).toList();
-    _fixedColCellsSums.add(CellData(text: '', isSum: true));
 
     // Create the fixed row headers (Dates with day acronyms) with CellData
     final List<CellData> _fixedRowCells = List.generate(
@@ -384,38 +388,24 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       },
     );
 
-    // Add sum row to main data grid
-    final dateSumRow = List.generate(endDate.difference(beginDate).inDays, (dayIndex) {
+    // Create fixed bottom row with date sums
+    final List<CellData> _fixedBottomRowCells = List.generate(endDate.difference(beginDate).inDays, (dayIndex) {
       final date = beginDate.add(Duration(days: dayIndex));
       final sum = dateSums[date] ?? 0.0;
       return CellData(
-        text: _showSums && sum > 0 ? sum.round().toString() : '',
+        text: formatNumber(sum),
         date: date,
         isSum: true,
         sum: sum,
       );
     });
-    // dateSumRow.add(CellData(text: '', isSum: true));
-    _rowsCells.add(dateSumRow);
-
-    // Add sum column to each row
-    /*for (int i = 0; i < widget.categories.length; i++) {
-      final categoryId = widget.categories[i]['id'];
-      final sum = categorySums[categoryId] ?? 0.0;
-      _rowsCells[i].add(CellData(
-        text: _showSums && sum > 0 ? sum.round().toString() : '',
-        categoryId: categoryId,
-        isSum: true,
-        sum: sum,
-      ));
-    }*/
 
     return CustomDataTable<CellData>(
       rowsCells: _rowsCells,
       fixedColCells: _fixedColCells,
       fixedRightColCells: _fixedColCellsSums,
-      showSums: _showSums,
       fixedRowCells: _fixedRowCells,
+      fixedBottomRowCells: _fixedBottomRowCells,
       cellBuilder: _cellBuilder,
       // fixedCornerCell: CellData(text: ''),
     );
