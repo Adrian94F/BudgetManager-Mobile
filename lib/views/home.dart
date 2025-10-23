@@ -5,15 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
 
 import '../services/auth_service.dart';
-import 'expense_details.dart';
 import 'expenses_list.dart';
 import 'expenses_table.dart';
-import 'income_details.dart';
 import 'incomes.dart';
 import 'settings.dart';
 import 'summary.dart';
 import 'widgets/fab_menu.dart';
-// import 'statistics.dart';
 
 class HomeScreen extends StatefulWidget {
   final Future<void> Function(String) setThemeMode;
@@ -32,15 +29,16 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _previousIndex;
   var _monthRelated = true;
   final _monthRelatedViews = 4;
-  late List<dynamic> _screens;
-  final List<String> _screenTitles = [
-    "Hello!",
-    "Expenses list",
-    "Expenses table",
-    "Incomes",
-    // "Statistics",
-    "Settings",
+
+  final List<ScreenData> _screens = [
+    ScreenData(title: "Hello!"),
+    ScreenData(title: "Expenses list"),
+    ScreenData(title: "Expenses table"),
+    ScreenData(title: "Incomes"),
+    // ScreenData(title: "Statistics"),
+    ScreenData(title: "Settings"),
   ];
+
   late Future<Map<String, dynamic>> _data;
   Map<String, dynamic> _loadedData = {};
   ExpensesFilter _filter = ExpensesFilter();
@@ -56,57 +54,72 @@ class _HomeScreenState extends State<HomeScreen> {
     String? login = await _storage.read(key: "login");
     if (login != null) {
       setState(() {
-        _screenTitles[0] = AppLocalizations.of(context)!.summaryTitle(login);
-        _screenTitles[1] = AppLocalizations.of(context)!.expensesList;
-        _screenTitles[2] = AppLocalizations.of(context)!.expensesTable;
-        _screenTitles[3] = AppLocalizations.of(context)!.incomes;
-        // _screenTitles[4] = AppLocalizations.of(context)!.statistics;
-        _screenTitles[4] = AppLocalizations.of(context)!.settings;
+        _screens[0].title = AppLocalizations.of(context)!.summaryTitle(login);
+        _screens[1].title = AppLocalizations.of(context)!.expensesList;
+        _screens[2].title = AppLocalizations.of(context)!.expensesTable;
+        _screens[3].title = AppLocalizations.of(context)!.incomes;
+        // _screens[4].title = AppLocalizations.of(context)!.statistics;
+        _screens[4].title = AppLocalizations.of(context)!.settings;
       });
     }
   }
 
-  void _setScreens() {
+  void _setScreensAndFABs() {
     final expenses = _loadedData['expenses'] as List<dynamic>;
     final categories = _loadedData['categories'] as List<dynamic>;
     final month = _loadedData['month'] as Map<String, dynamic>;
 
-    _screens = [
-      SummaryScreen(
+    _screens[0].screen = SummaryScreen(
         data: _loadedData
-      ),
-      ExpensesListView(
+    );
+    _screens[0].fab = FabMenu(
+      loadedData: _loadedData,
+      onRefresh: _handleRefresh,
+    );
+
+    _screens[1].screen = ExpensesListView(
         expenses: expenses,
         categories: categories,
         filter: _filter,
         monthId: month['id'],
         refreshParent: _handleRefresh
-      ),
-      ExpensesTableView(
-        expenses: expenses,
-        categories: categories,
-        month: month,
-        refreshParent: _handleRefresh,
-        openFilteredListCallback: openFilteredExpensesList,
-        saveTableCoords: saveTableCoords,
-        scrollCoords: _savedCoords,
-      ),
-      IncomesScreen(
+    );
+    _screens[1].fab = FabMenu(
+      loadedData: _loadedData,
+      onRefresh: _handleRefresh,
+      fabType: FabType.expense,
+    );
+
+    _screens[2].screen = ExpensesTableView(
+      expenses: expenses,
+      categories: categories,
+      month: month,
+      refreshParent: _handleRefresh,
+      openFilteredListCallback: openFilteredExpensesList,
+      saveTableCoords: saveTableCoords,
+      scrollCoords: _savedCoords,
+    );
+
+    _screens[3].screen = IncomesScreen(
         data: _loadedData,
         refreshParent: _handleRefresh
-      ),
-      // StatisticsScreen(),
-      SettingsScreen(
+    );
+    _screens[3].fab = FabMenu(
+      loadedData: _loadedData,
+      onRefresh: _handleRefresh,
+      fabType: FabType.income,
+    );
+
+    _screens[4].screen = SettingsScreen(
         setThemeMode: widget.setThemeMode
-      )
-    ];
+    );
   }
 
   void openFilteredExpensesList(ExpensesFilter filter) {
-    print("Opening filtered expenses list with filter: $filter");
+    // print("Opening filtered expenses list with filter: $filter");
     setState(() {
       _filter = filter;
-      _setScreens();
+      _setScreensAndFABs();
       _previousIndex = _currentIndex;
       _currentIndex = 1;
     });
@@ -167,11 +180,11 @@ class _HomeScreenState extends State<HomeScreen> {
           } else {
             _loadedData = snapshot.data!;
             var months = _loadedData['months'] as List<dynamic>;
-            _setScreens();
+            _setScreensAndFABs();
 
             var message = _loadedData['message'];
             var body = message == null
-              ? _screens[_currentIndex]
+              ? _screens[_currentIndex].screen!
               : Center(
                 child: Text(
                   message,
@@ -213,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   title: Text(
                     _currentIndex < 4
                         ? monthDates
-                        : _screenTitles[_currentIndex],
+                        : _screens[_currentIndex].title!,
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   shadowColor: Theme.of(context).colorScheme.shadow,
@@ -231,12 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   : null,
                 ),
                 bottomNavigationBar: _bottomNavigation(),
-                floatingActionButton: _currentIndex < 4
-                    ? FabMenu(
-                      loadedData: _loadedData,
-                      onRefresh: _handleRefresh,
-                    )
-                    : null,
+                floatingActionButton: _screens[_currentIndex].fab,
               )
             );
           }
@@ -423,4 +431,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
   }
+}
+
+class ScreenData {
+  Widget? screen;
+  String? title;
+  Widget? fab;
+
+  ScreenData({this.screen, this.title, this.fab});
 }
