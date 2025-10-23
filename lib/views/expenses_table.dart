@@ -389,7 +389,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     return List.generate(
       widget.endDate.difference(widget.beginDate).inDays,
           (i) {
-        final date = widget.beginDate.add(Duration(days: i));
+        final date = DateUtils.dateOnly(widget.beginDate.add(Duration(days: i, hours: 1)));
         final dayAcronym = _getDayAcronym(date);
         final dateNum = date.day.toString();
         final dateSum = widget.dateSums[date] ?? 0.0;
