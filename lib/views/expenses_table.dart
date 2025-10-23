@@ -43,6 +43,14 @@ class ExpensesTableView extends StatefulWidget {
 class _ExpensesTableViewState extends State<ExpensesTableView> {
   final TableViewController _tableViewController = TableViewController();
   // final _columnWidth = 45.0;
+  late Future<Map<String, List<dynamic>>> _calculationFuture;
+
+  @override
+  void didUpdateWidget(covariant ExpensesTableView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Recalculate if the data has changed
+    _calculationFuture = _prepareTableData();
+  }
 
   @override
   void initState() {
@@ -55,6 +63,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => _scrollToToday());
     }
+    _calculationFuture = _prepareTableData();
   }
 
   void _scrollToToday() {
@@ -408,20 +417,45 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     });
   }
 
+  Future<Map<String, List<dynamic>>> _prepareTableData() async {
+    return Future(() {
+      calculateSums();
+      return {
+        'rowsCells': [createRowsCells()],
+        'fixedColCells': [createFixedColCells()],
+        'fixedRightColCells': [createFixedColCellsSums()],
+        'fixedRowCells': [createFixedRowCells()],
+        'fixedBottomRowCells': [createFixedRowCellsSums()],
+      };
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.expenses.isEmpty || widget.categories.isEmpty) {
       return const Center(child: Text("No data available"));
     }
 
-    calculateSums();
-    return CustomDataTable<CellData>(
-      rowsCells: createRowsCells(),
-      fixedColCells: createFixedColCells(),
-      fixedRightColCells: createFixedColCellsSums(),
-      fixedRowCells: createFixedColCells(),
-      fixedBottomRowCells: createFixedRowCellsSums(),
-      cellBuilder: _cellBuilder,
+    return FutureBuilder<Map<String, List<dynamic>>>(
+      future: _calculationFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.hasData) {
+          final data = snapshot.data!;
+          return CustomDataTable<CellData>(
+            rowsCells: data['rowsCells']![0],
+            fixedColCells: data['fixedColCells']![0],
+            fixedRightColCells: data['fixedRightColCells']![0],
+            fixedRowCells: data['fixedRowCells']![0],
+            fixedBottomRowCells: data['fixedBottomRowCells']![0],
+            cellBuilder: _cellBuilder,
+          );
+        }
+        return const Center(child: Text("No data to display."));
+      },
     );
   }
 }
