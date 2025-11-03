@@ -163,12 +163,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   actions: _monthMenu(context, _monthRelated, []),
                 ),
                 bottomNavigationBar: _bottomNavigation(),
-                floatingActionButton: _currentIndex < 4
-                    ? FabMenu(
-                      loadedData: _loadedData,
-                      onRefresh: _handleRefresh,
-                    )
-                    : null,
             );
           } else if (snapshot.hasError) {
             _logout(context);
@@ -193,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
 
             var currentStartDate = DateTime.parse(_loadedData['month']['start_date']);
-            var currentEndDate = DateTime.parse(_loadedData['month']['end_date']).add(const Duration(days: 1));
+            var currentEndDate = DateTime.parse(_loadedData['month']['end_date']);
             var monthDates = currentStartDate.year == currentEndDate.year
                 ? "${DateFormat("d.MM").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}"
                 : "${DateFormat("d.MM.yyyy").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}";
