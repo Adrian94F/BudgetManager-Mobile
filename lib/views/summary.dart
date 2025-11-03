@@ -164,7 +164,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
     final expenses = widget.data['expenses'] as List<dynamic>;
 
     return Container(
-      height: 150,
+      height: 200,
       child: InkWell(
         onTap: () {
           Navigator.push(

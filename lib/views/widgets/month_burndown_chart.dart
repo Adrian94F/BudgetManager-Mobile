@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:community_charts_flutter/community_charts_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -28,17 +30,41 @@ class MonthBurndownChart extends StatelessWidget {
         : MediaQuery.of(context).size.width * 3 / 5;
     final segmentWidth = widgetWidth / (chartData.dateLabels.length);
 
+    final allValues = [
+      ...chartData.burndownValues,
+      ...chartData.idealBurndownValues,
+      ...chartData.dailyExpensesValues,
+      ...chartData.monthlyExpensesValues,
+    ];
+    final minVal = allValues.reduce(min);
+    final maxVal = allValues.reduce(max);
+    final double axisMin = (minVal / 1000).floor() * 1000;
+    final double axisMax = (maxVal / 1000).ceil() * 1000;
+    final tickValues = <TickSpec<num>>[
+      TickSpec(axisMax),
+    ];
+    if (axisMin < 0) {
+      tickValues.add(TickSpec(axisMin));
+    }
+    if (axisMin < 0 && axisMax > 0 || axisMin == 0) {
+      tickValues.add(const TickSpec(0));
+    }
+
     return OrdinalComboChart(
       seriesList,
       primaryMeasureAxis: NumericAxisSpec(
-          tickProviderSpec: BasicNumericTickProviderSpec(
-            desiredMinTickCount: isSimplified ? 1 : 6,
-            desiredMaxTickCount: isSimplified ? 1 : 7,
-          ),
-          tickFormatterSpec: BasicNumericTickFormatterSpec((num? number) {
-            if (number == null || number == 0) return "0";
-            return "${(number / 1000.0).toStringAsFixed(0)}k";
-          }),
+        tickProviderSpec: isSimplified
+            ? StaticNumericTickProviderSpec(tickValues)
+            : null,
+        tickFormatterSpec: BasicNumericTickFormatterSpec(
+          (num? number) {
+            if (number == null || number == 0) {
+              return isSimplified ? "" : "0";
+            } else {
+              return "${(number / 1000.0).toStringAsFixed(0)}k";
+            }
+          }
+        ),
         renderSpec: GridlineRendererSpec(
           labelStyle: TextStyleSpec(
             color: Theme.of(context).brightness == Brightness.light
