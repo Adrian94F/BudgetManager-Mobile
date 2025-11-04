@@ -147,95 +147,126 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
-        future: _data,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError) {
-            if (snapshot.hasError) {
-              _logout(context);
-            }
-            return Scaffold(
-                body: const Center(
-                    child: CircularProgressIndicator()
-                ),
-            );
-          }  else {
-            _loadedData = snapshot.data!;
-
-            return PopScope(
-              canPop: _previousIndex == null, // Allow popping only if there's no previous index to go back to
-              onPopInvoked: (bool didPop) {
-                if (didPop) {
-                  return; // If the pop was allowed and happened, do nothing.
-                }
-                // If canPop was false, onPopInvoked is called with didPop = false.
-                // This is where you handle the custom back navigation.
-                if (_previousIndex != null) {
-                  setState(() {
-                    _currentIndex = _previousIndex!;
-                    _previousIndex = null; // Clear the previous index after navigating back
-                  });
-                }
-              },
-              child: _buildHomeScreen(),
-            );
+      future: _data,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError) {
+          if (snapshot.hasError) {
+            _logout(context);
           }
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else {
+          _loadedData = snapshot.data!;
+
+          return PopScope(
+            canPop: _previousIndex == null,
+            onPopInvoked: (bool didPop) {
+              if (didPop) return;
+              if (_previousIndex != null) {
+                setState(() {
+                  _currentIndex = _previousIndex!;
+                  _previousIndex = null;
+                });
+              }
+            },
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return _buildBody(constraints);
+              },
+            ),
+          );
         }
+      },
     );
   }
 
-  Widget _buildHomeScreen() {
+  Widget _buildBody(BoxConstraints constraints) {
     var months = _loadedData['months'] as List<dynamic>;
     _setScreensAndFABs();
 
     var message = _loadedData['message'];
-    var refreshIndicatorBody = message == null
-      ? _screens[_currentIndex].screen!
-      : Center(
-        child: Text(
-          message,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        )
-      );
+    var homeScreenChild = message == null
+        ? _screens[_currentIndex].screen!
+        : Center(
+          child: Text(
+            message,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          )
+        );
 
     var currentStartDate = DateTime.parse(_loadedData['month']['start_date']);
     var currentEndDate = DateTime.parse(_loadedData['month']['end_date']);
     var monthDates = currentStartDate.year == currentEndDate.year
         ? "${DateFormat("d.MM").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}"
         : "${DateFormat("d.MM.yyyy").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}";
-    
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _handleRefreshHard,
-        child: refreshIndicatorBody is Center
-            ? ListView(
-          children: [refreshIndicatorBody],
-        )
-            : refreshIndicatorBody,
-      ),
-      appBar: AppBar(
-        title: Text(
-          _currentIndex < 4
-              ? monthDates
-              : _screens[_currentIndex].title!,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        shadowColor: Theme.of(context).colorScheme.shadow,
-        actions: _monthMenu(context, _monthRelated, months),
-        leading: _previousIndex != null
-            ? IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            setState(() {
-              _currentIndex = _previousIndex!;
-              _previousIndex = null;  // Clear the previous index
-            });
-          },
-        )
-            : null,
-      ),
-      bottomNavigationBar: _bottomNavigation(),
-      floatingActionButton: _screens[_currentIndex].fab,
+
+    final body = RefreshIndicator(
+      onRefresh: _handleRefreshHard,
+      child: homeScreenChild is Center
+          ? ListView(
+        children: [homeScreenChild],
+      )
+          : homeScreenChild,
     );
+
+    if (constraints.maxWidth >= 600) {
+      return Row(
+        children: [
+          _navigationRail(),
+          const VerticalDivider(thickness: 1, width: 1),
+          Expanded(
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  _currentIndex < 4 ? monthDates : _screens[_currentIndex].title!,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                shadowColor: Theme.of(context).colorScheme.shadow,
+                actions: _monthMenu(context, _monthRelated, months),
+                // No back button needed here as it's not a separate screen
+              ),
+              body: body,
+              floatingActionButton: _screens[_currentIndex].fab,
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Scaffold(
+        body: RefreshIndicator(
+          onRefresh: _handleRefreshHard,
+          child: homeScreenChild is Center
+              ? ListView(
+            children: [homeScreenChild],
+          )
+              : homeScreenChild,
+        ),
+        appBar: AppBar(
+          title: Text(
+            _currentIndex < 4
+                ? monthDates
+                : _screens[_currentIndex].title!,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          shadowColor: Theme.of(context).colorScheme.shadow,
+          actions: _monthMenu(context, _monthRelated, months),
+          leading: _previousIndex != null
+              ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  setState(() {
+                    _currentIndex = _previousIndex!;
+                    _previousIndex = null;  // Clear the previous index
+                  });
+                },
+              )
+              : null,
+        ),
+        bottomNavigationBar: _bottomNavigation(),
+        floatingActionButton: _screens[_currentIndex].fab,
+      );
+    }
   }
 
   Future<void> _handleRefresh() async {
@@ -250,6 +281,45 @@ class _HomeScreenState extends State<HomeScreen> {
       _savedCoords = null;
       _fetchData();
     });
+  }
+
+  NavigationRail _navigationRail() {
+    return NavigationRail(
+      selectedIndex: _currentIndex,
+      onDestinationSelected: (index) {
+        setState(() {
+          _filter = ExpensesFilter();
+          _monthRelated = index < _monthRelatedViews;
+          _previousIndex = null;
+          _currentIndex = index;
+        });
+      },
+      groupAlignment: 0,
+      leading: _screens[_currentIndex].fab ?? SizedBox.square(dimension: 56),
+      labelType: NavigationRailLabelType.selected,
+      destinations: [
+        NavigationRailDestination(
+          icon: const Icon(Icons.home),
+          label: Text(AppLocalizations.of(context)!.summary),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.table_rows),
+          label: Text(AppLocalizations.of(context)!.expensesListShort),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.grid_view_sharp),
+          label: Text(AppLocalizations.of(context)!.expensesTableShort),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.download),
+          label: Text(AppLocalizations.of(context)!.incomes),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.settings_rounded),
+          label: Text(AppLocalizations.of(context)!.settings),
+        ),
+      ],
+    );
   }
 
   NavigationBar _bottomNavigation() {
