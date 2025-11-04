@@ -149,48 +149,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return FutureBuilder<Map<String, dynamic>>(
         future: _data,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError) {
+            if (snapshot.hasError) {
+              _logout(context);
+            }
             return Scaffold(
                 body: const Center(
                     child: CircularProgressIndicator()
                 ),
-                appBar: AppBar(
-                  title: const Text(
-                    "",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  shadowColor: Theme.of(context).colorScheme.shadow,
-                  actions: _monthMenu(context, _monthRelated, []),
-                ),
-                bottomNavigationBar: _bottomNavigation(),
             );
-          } else if (snapshot.hasError) {
-            _logout(context);
-            return const Scaffold(
-                body: Center(
-                    child: CircularProgressIndicator()
-                )
-            );
-          } else {
+          }  else {
             _loadedData = snapshot.data!;
-            var months = _loadedData['months'] as List<dynamic>;
-            _setScreensAndFABs();
-
-            var message = _loadedData['message'];
-            var body = message == null
-              ? _screens[_currentIndex].screen!
-              : Center(
-                child: Text(
-                  message,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                )
-              );
-
-            var currentStartDate = DateTime.parse(_loadedData['month']['start_date']);
-            var currentEndDate = DateTime.parse(_loadedData['month']['end_date']);
-            var monthDates = currentStartDate.year == currentEndDate.year
-                ? "${DateFormat("d.MM").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}"
-                : "${DateFormat("d.MM.yyyy").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}";
 
             return PopScope(
               canPop: _previousIndex == null, // Allow popping only if there's no previous index to go back to
@@ -207,42 +176,65 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 }
               },
-              child: Scaffold(
-                body: RefreshIndicator(
-                  onRefresh: _handleRefreshHard,
-                  child: body is Center
-                      ? ListView(
-                          children: [body],
-                        )
-                      : body,
-                ),
-                appBar: AppBar(
-                  title: Text(
-                    _currentIndex < 4
-                        ? monthDates
-                        : _screens[_currentIndex].title!,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  shadowColor: Theme.of(context).colorScheme.shadow,
-                  actions: _monthMenu(context, _monthRelated, months),
-                  leading: _previousIndex != null
-                      ? IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      setState(() {
-                        _currentIndex = _previousIndex!;
-                        _previousIndex = null; // Clear the previous index
-                      });
-                    },
-                  )
-                  : null,
-                ),
-                bottomNavigationBar: _bottomNavigation(),
-                floatingActionButton: _screens[_currentIndex].fab,
-              )
+              child: _buildHomeScreen(),
             );
           }
         }
+    );
+  }
+
+  Widget _buildHomeScreen() {
+    var months = _loadedData['months'] as List<dynamic>;
+    _setScreensAndFABs();
+
+    var message = _loadedData['message'];
+    var refreshIndicatorBody = message == null
+      ? _screens[_currentIndex].screen!
+      : Center(
+        child: Text(
+          message,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        )
+      );
+
+    var currentStartDate = DateTime.parse(_loadedData['month']['start_date']);
+    var currentEndDate = DateTime.parse(_loadedData['month']['end_date']);
+    var monthDates = currentStartDate.year == currentEndDate.year
+        ? "${DateFormat("d.MM").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}"
+        : "${DateFormat("d.MM.yyyy").format(currentStartDate)}-${DateFormat("d.MM.yyyy").format(currentEndDate)}";
+    
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: _handleRefreshHard,
+        child: refreshIndicatorBody is Center
+            ? ListView(
+          children: [refreshIndicatorBody],
+        )
+            : refreshIndicatorBody,
+      ),
+      appBar: AppBar(
+        title: Text(
+          _currentIndex < 4
+              ? monthDates
+              : _screens[_currentIndex].title!,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        shadowColor: Theme.of(context).colorScheme.shadow,
+        actions: _monthMenu(context, _monthRelated, months),
+        leading: _previousIndex != null
+            ? IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            setState(() {
+              _currentIndex = _previousIndex!;
+              _previousIndex = null;  // Clear the previous index
+            });
+          },
+        )
+            : null,
+      ),
+      bottomNavigationBar: _bottomNavigation(),
+      floatingActionButton: _screens[_currentIndex].fab,
     );
   }
 
