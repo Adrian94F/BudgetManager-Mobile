@@ -84,26 +84,66 @@ class _SummaryScreenState extends State<SummaryScreen> {
   @override
   Widget build(BuildContext context) {
     final summary = Summary(data: widget.data);
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      children: [
-        _buildBurndownChartCard(context),
-        const SizedBox(height: 16),
-        _buildBalanceCard(context, summary),
-        const SizedBox(height: 16),
-        _buildExpensesCard(
-            context,
-            summary.regularExpensesSum,
-            summary.monthlyExpensesSum,
-            summary.expensesSum),
-        const SizedBox(height: 16),
-        _buildIncomeCard(
-            context,
-            summary.salarySum,
-            summary.otherIncomesSum,
-            summary.incomesSum),
-        const SizedBox(height: 70),
-      ],
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        if (orientation == Orientation.landscape) {
+          return Row(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                  children: [
+                    _buildBurndownChartCard(context, orientation: orientation),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.only(right: 32, top: 8.0, bottom: 8.0),
+                  children: [
+                    _buildBalanceCard(context, summary),
+                    const SizedBox(height: 16),
+                    _buildExpensesCard(
+                        context,
+                        summary.regularExpensesSum,
+                        summary.monthlyExpensesSum,
+                        summary.expensesSum),
+                    const SizedBox(height: 16),
+                    _buildIncomeCard(
+                        context,
+                        summary.salarySum,
+                        summary.otherIncomesSum,
+                        summary.incomesSum),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ],
+          );
+        } else {
+          return ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            children: [
+              _buildBurndownChartCard(context, orientation: orientation),
+              const SizedBox(height: 16),
+              _buildBalanceCard(context, summary),
+              const SizedBox(height: 16),
+              _buildExpensesCard(
+                  context,
+                  summary.regularExpensesSum,
+                  summary.monthlyExpensesSum,
+                  summary.expensesSum),
+              const SizedBox(height: 16),
+              _buildIncomeCard(
+                  context,
+                  summary.salarySum,
+                  summary.otherIncomesSum,
+                  summary.incomesSum),
+              const SizedBox(height: 70),
+            ],
+          );
+        }
+      },
     );
   }
 
@@ -157,14 +197,15 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 
-  Widget _buildBurndownChartCard(BuildContext context) {
+  Widget _buildBurndownChartCard(BuildContext context, {Orientation orientation = Orientation.portrait}) {
     final startDate = DateTime.parse(widget.data['month']['start_date']);
     final endDate = DateTime.parse(widget.data['month']['end_date']);
     final incomes = widget.data['incomes'] as List<dynamic>;
     final expenses = widget.data['expenses'] as List<dynamic>;
+    final isVertical = orientation == Orientation.portrait;
 
     return Container(
-      height: 200,
+      height: isVertical ? 200 : 300,
       child: InkWell(
         onTap: () {
           Navigator.push(
