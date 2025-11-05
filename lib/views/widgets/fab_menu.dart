@@ -24,9 +24,9 @@ class FabMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (fabType) {
       case FabType.expense:
-        return buildAddExpenseFAB(context, inModal: false);
+        return buildAddExpenseFAB(context);
       case FabType.income:
-        return buildAddIncomeFAB(context, inModal: false);
+        return buildAddIncomeFAB(context);
       case FabType.full:
         return FloatingActionButton(
           shape: const RoundedRectangleBorder(
@@ -36,41 +36,50 @@ class FabMenu extends StatelessWidget {
             showModalBottomSheet(
               context: context,
               backgroundColor: Colors.transparent,
+              isScrollControlled: true,
               builder: (BuildContext context) {
-                return Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 70),
-                      child: buildAddExpenseFAB(context),
+                final isVertical = MediaQuery.of(context).orientation == Orientation.portrait;
+                return GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    color: Colors.transparent,
+                    child: DraggableScrollableSheet(
+                      initialChildSize: isVertical ? 0.4 : 0.7,
+                      minChildSize: 0.3,
+                      maxChildSize: isVertical ? 0.5 : 0.7,
+                      builder: (_, scrollController) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).canvasColor,
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(16.0),
+                              topRight: Radius.circular(16.0),
+                            ),
+                          ),
+                          child: ListView(
+                            controller: scrollController,
+                            children: [
+                              Center(
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                                  height: 5.0,
+                                  width: 40.0,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                ),
+                              ),
+                              buildAddExpenseListItem(context),
+                              buildAddIncomeListItem(context),
+                              buildMonthDetailsListItem(context),
+                              buildNewMonthListItem(context),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 140.0),
-                      child: buildAddIncomeFAB(context),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 210.0),
-                      child: FloatingActionButton.extended(
-                        heroTag: 'month_details_fab',
-                        onPressed: () {
-                          monthDetailsFabAction(context);
-                        },
-                        label: Text(AppLocalizations.of(context)!.monthDetails),
-                        icon: const Icon(Icons.edit_calendar),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 280.0),
-                      child: FloatingActionButton.extended(
-                        heroTag: 'add_month_fab',
-                        onPressed: () {
-                          newMonthFabAction(context);
-                        },
-                        label: Text(AppLocalizations.of(context)!.newMonth),
-                        icon: const Icon(Icons.calendar_month_rounded),
-                      ),
-                    ),
-                  ],
+                  ),
                 );
               },
             );
@@ -96,27 +105,6 @@ class FabMenu extends StatelessWidget {
     ).then((_) => onRefresh());
   }
 
-  Widget buildAddExpenseFAB(BuildContext context, {bool inModal = true}) {
-    if (inModal) {
-      return FloatingActionButton.extended(
-        heroTag: 'add_expense_fab',
-        onPressed: () {
-          addExpenseFabAction(context, inModal: inModal);
-        },
-        label: Text(AppLocalizations.of(context)!.addExpense),
-        icon: const Icon(Icons.arrow_upward_rounded),
-      );
-    } else {
-      return FloatingActionButton(
-        heroTag: 'add_expense_fab',
-        onPressed: () {
-          addExpenseFabAction(context, inModal: inModal);
-        },
-        child: const Icon(Icons.add),
-      );
-    }
-  }
-
   void addIncomeFabAction(BuildContext context, {bool inModal = true}) {
     if (inModal) {
       Navigator.pop(context);
@@ -129,27 +117,6 @@ class FabMenu extends StatelessWidget {
           preferredDate: DateTime.now(),
         ))
     ).then((_) => onRefresh());
-  }
-
-  Widget buildAddIncomeFAB(BuildContext context, {bool inModal = true}) {
-    if (inModal) {
-      return FloatingActionButton.extended(
-        heroTag: 'add_income_fab',
-        onPressed: () {
-          addIncomeFabAction(context, inModal: inModal);
-        },
-        label: Text(AppLocalizations.of(context)!.addIncome),
-        icon: const Icon(Icons.arrow_downward_rounded),
-      );
-    } else {
-      return FloatingActionButton(
-        heroTag: 'add_income_fab',
-        onPressed: () {
-          addIncomeFabAction(context, inModal: inModal);
-        },
-        child: const Icon(Icons.add),
-      );
-    }
   }
 
   void monthDetailsFabAction(BuildContext context) {
@@ -183,6 +150,75 @@ class FabMenu extends StatelessWidget {
         ),
       ),
     ).then((_) => onRefresh());
+  }
+
+  Widget _buildModalListItem({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      onTap: onTap,
+    );
+  }
+
+  Widget buildAddExpenseListItem(BuildContext context) {
+    return _buildModalListItem(
+      context: context,
+      label: AppLocalizations.of(context)!.addExpense,
+      icon: Icons.arrow_upward_rounded,
+      onTap: () => addExpenseFabAction(context),
+    );
+  }
+
+  Widget buildAddIncomeListItem(BuildContext context) {
+    return _buildModalListItem(
+      context: context,
+      label: AppLocalizations.of(context)!.addIncome,
+      icon: Icons.arrow_downward_rounded,
+      onTap: () => addIncomeFabAction(context),
+    );
+  }
+
+  Widget buildMonthDetailsListItem(BuildContext context) {
+    return _buildModalListItem(
+      context: context,
+      label: AppLocalizations.of(context)!.monthDetails,
+      icon: Icons.edit_calendar,
+      onTap: () => monthDetailsFabAction(context),
+    );
+  }
+
+  Widget buildNewMonthListItem(BuildContext context) {
+    return _buildModalListItem(
+      context: context,
+      label: AppLocalizations.of(context)!.newMonth,
+      icon: Icons.calendar_month_rounded,
+      onTap: () => newMonthFabAction(context),
+    );
+  }
+
+  Widget buildAddExpenseFAB(BuildContext context) {
+    return FloatingActionButton(
+      heroTag: 'add_expense_fab',
+      onPressed: () {
+        addExpenseFabAction(context, inModal: false);
+      },
+      child: const Icon(Icons.add),
+    );
+  }
+
+  Widget buildAddIncomeFAB(BuildContext context) {
+    return FloatingActionButton(
+      heroTag: 'add_income_fab',
+      onPressed: () {
+        addIncomeFabAction(context, inModal: false);
+      },
+      child: const Icon(Icons.add),
+    );
   }
 
   static List<int> getTopNCategories(List<dynamic> expenses, int nOfCategories) {

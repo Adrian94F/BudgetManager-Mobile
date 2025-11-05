@@ -227,7 +227,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 // No back button needed here as it's not a separate screen
               ),
               body: body,
-              floatingActionButton: _screens[_currentIndex].fab,
             ),
           ),
         ],
