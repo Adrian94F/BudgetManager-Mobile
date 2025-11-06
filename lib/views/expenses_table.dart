@@ -4,7 +4,6 @@ import 'package:budget_manager/l10n/app_localizations.dart';
 import 'package:material_table_view/material_table_view.dart';
 
 import 'expenses_list.dart';
-import 'filtered_expenses_list.dart';
 import 'widgets/expenses_table_item_button.dart';
 
 class ExpensesTableView extends StatefulWidget {
