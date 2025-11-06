@@ -21,13 +21,13 @@
   "expensesListShort": "List",
   "expensesTableShort": "Table",
   "settings": "Settings",
-  "monthDetails": "Month details",
+  "monthDetails": "Edit details",
   "startDate": "Start date",
   "endDate": "End date",
   "cancel": "Cancel",
   "save": "Save",
   "selectMonth": "Select month",
-  "newMonth": "New month",
+  "newMonth": "Create new",
   "balance": "Balance",
   "currentMonth": "Current month",
   "salary": "Salary",
@@ -89,5 +89,7 @@
   "shortThursday": "T",
   "shortFriday": "F",
   "shortSaturday": "S",
-  "shortSunday": "S"
+  "shortSunday": "S",
+  "transactions": "Transactions",
+  "month": "Month"
 }

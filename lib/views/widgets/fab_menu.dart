@@ -1,3 +1,4 @@
+import 'package:budget_manager/views/settings.dart';
 import 'package:flutter/material.dart';
 
 import 'package:budget_manager/l10n/app_localizations.dart';
@@ -19,7 +20,6 @@ class FabMenu extends StatelessWidget {
     this.fabType = FabType.full,
   });
 
-
   @override
   Widget build(BuildContext context) {
     switch (fabType) {
@@ -38,15 +38,16 @@ class FabMenu extends StatelessWidget {
               backgroundColor: Colors.transparent,
               isScrollControlled: true,
               builder: (BuildContext context) {
-                final isVertical = MediaQuery.of(context).orientation == Orientation.portrait;
+                final isVertical =
+                    MediaQuery.of(context).orientation == Orientation.portrait;
                 return GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
                     color: Colors.transparent,
                     child: DraggableScrollableSheet(
-                      initialChildSize: isVertical ? 0.4 : 0.7,
+                      initialChildSize: isVertical ? 0.3 : 0.6,
                       minChildSize: 0.3,
-                      maxChildSize: isVertical ? 0.5 : 0.7,
+                      maxChildSize: isVertical ? 0.4 : 0.6,
                       builder: (_, scrollController) {
                         return Container(
                           decoration: BoxDecoration(
@@ -56,25 +57,66 @@ class FabMenu extends StatelessWidget {
                               topRight: Radius.circular(16.0),
                             ),
                           ),
-                          child: ListView(
+                          child: SingleChildScrollView(
                             controller: scrollController,
-                            children: [
-                              Center(
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(vertical: 8.0),
-                                  height: 5.0,
-                                  width: 40.0,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(10.0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Center(
+                                    child: Container(
+                                      margin:
+                                      const EdgeInsets.only(bottom: 16.0),
+                                      height: 5.0,
+                                      width: 40.0,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius:
+                                        BorderRadius.circular(10.0),
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  Padding(
+                                    padding:
+                                    const EdgeInsets.only(bottom: 8.0),
+                                    child: Text(
+                                      AppLocalizations.of(context)!
+                                          .transactions,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      buildAddExpenseButton(context),
+                                      const SizedBox(width: 16),
+                                      buildAddIncomeButton(context),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Padding(
+                                    padding:
+                                    const EdgeInsets.only(bottom: 8.0),
+                                    child: Text(
+                                      AppLocalizations.of(context)!.month,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      buildMonthDetailsButton(context),
+                                      const SizedBox(width: 16),
+                                      buildNewMonthButton(context),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              buildAddExpenseListItem(context),
-                              buildAddIncomeListItem(context),
-                              buildMonthDetailsListItem(context),
-                              buildNewMonthListItem(context),
-                            ],
+                            ),
                           ),
                         );
                       },
@@ -111,12 +153,13 @@ class FabMenu extends StatelessWidget {
     }
     Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => IncomeDetails(
-          income: null,
-          monthId: loadedData['month']['id'],
-          preferredDate: DateTime.now(),
-        ))
-    ).then((_) => onRefresh());
+        MaterialPageRoute(
+            builder: (context) => IncomeDetails(
+              income: null,
+              monthId: loadedData['month']['id'],
+              preferredDate: DateTime.now(),
+            )))
+        .then((_) => onRefresh());
   }
 
   void monthDetailsFabAction(BuildContext context) {
@@ -133,8 +176,7 @@ class FabMenu extends StatelessWidget {
 
   void newMonthFabAction(BuildContext context) {
     Navigator.pop(context);
-    var newStartDate =
-    DateTime.parse(loadedData['month']['end_date'])
+    var newStartDate = DateTime.parse(loadedData['month']['end_date'])
         .add(const Duration(days: 1));
     var newEndDate = newStartDate.add(const Duration(days: 30));
     var newMonth = {
@@ -152,52 +194,35 @@ class FabMenu extends StatelessWidget {
     ).then((_) => onRefresh());
   }
 
-  Widget _buildModalListItem({
-    required BuildContext context,
-    required String label,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(label),
-      onTap: onTap,
+  Widget buildAddExpenseButton(BuildContext context) {
+    return FilledButton.icon(
+      onPressed: () => addExpenseFabAction(context),
+      icon: const Icon(Icons.arrow_upward_rounded),
+      label: Text(AppLocalizations.of(context)!.addExpense),
     );
   }
 
-  Widget buildAddExpenseListItem(BuildContext context) {
-    return _buildModalListItem(
-      context: context,
-      label: AppLocalizations.of(context)!.addExpense,
-      icon: Icons.arrow_upward_rounded,
-      onTap: () => addExpenseFabAction(context),
+  Widget buildAddIncomeButton(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => addIncomeFabAction(context),
+      icon: const Icon(Icons.arrow_downward_rounded),
+      label: Text(AppLocalizations.of(context)!.addIncome),
     );
   }
 
-  Widget buildAddIncomeListItem(BuildContext context) {
-    return _buildModalListItem(
-      context: context,
-      label: AppLocalizations.of(context)!.addIncome,
-      icon: Icons.arrow_downward_rounded,
-      onTap: () => addIncomeFabAction(context),
+  Widget buildMonthDetailsButton(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => monthDetailsFabAction(context),
+      icon: const Icon(Icons.edit_calendar),
+      label: Text(AppLocalizations.of(context)!.monthDetails),
     );
   }
 
-  Widget buildMonthDetailsListItem(BuildContext context) {
-    return _buildModalListItem(
-      context: context,
-      label: AppLocalizations.of(context)!.monthDetails,
-      icon: Icons.edit_calendar,
-      onTap: () => monthDetailsFabAction(context),
-    );
-  }
-
-  Widget buildNewMonthListItem(BuildContext context) {
-    return _buildModalListItem(
-      context: context,
-      label: AppLocalizations.of(context)!.newMonth,
-      icon: Icons.calendar_month_rounded,
-      onTap: () => newMonthFabAction(context),
+  Widget buildNewMonthButton(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => newMonthFabAction(context),
+      icon: const Icon(Icons.calendar_month_rounded),
+      label: Text(AppLocalizations.of(context)!.newMonth),
     );
   }
 
@@ -221,14 +246,19 @@ class FabMenu extends StatelessWidget {
     );
   }
 
-  static List<int> getTopNCategories(List<dynamic> expenses, int nOfCategories) {
+  static List<int> getTopNCategories(
+      List<dynamic> expenses, int nOfCategories) {
     Map<int, int> categoryCounts = {};
     for (var expense in expenses) {
       int categoryId = expense['category'];
       categoryCounts[categoryId] = (categoryCounts[categoryId] ?? 0) + 1;
     }
-    List<MapEntry<int, int>> categoryCountsList = categoryCounts.entries.toList();
+    List<MapEntry<int, int>> categoryCountsList =
+    categoryCounts.entries.toList();
     categoryCountsList.sort((a, b) => b.value.compareTo(a.value));
-    return categoryCountsList.take(nOfCategories).map((entry) => entry.key).toList();
+    return categoryCountsList
+        .take(nOfCategories)
+        .map((entry) => entry.key)
+        .toList();
   }
 }

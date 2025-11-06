@@ -9,13 +9,13 @@
     "expensesListShort": "Lista",
     "expensesTableShort": "Tabela",
     "settings": "Ustawienia",
-    "monthDetails": "Szczegóły miesiąca",
+    "monthDetails": "Edytuj szczegóły",
     "startDate": "Początek",
     "endDate": "Koniec",
     "cancel": "Anuluj",
     "save": "Zapisz",
     "selectMonth": "Wybierz miesiąc",
-    "newMonth": "Nowy miesiąc",
+    "newMonth": "Utwórz nowy",
     "balance": "Bilans",
     "currentMonth": "Aktualny miesiąc",
     "salary": "Pensja",
@@ -77,5 +77,7 @@
     "shortThursday": "C",
     "shortFriday": "P",
     "shortSaturday": "S",
-    "shortSunday": "N"
+    "shortSunday": "N",
+    "transactions": "Transakcje",
+    "month": "Miesiąc"
 }
