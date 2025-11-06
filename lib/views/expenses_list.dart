@@ -49,7 +49,9 @@ class _ExpensesListViewState extends State<ExpensesListView> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToToday();
+      if (widget.filter.date == null && widget.filter.category == null) {
+        _scrollToToday();
+      }
     });
   }
 
@@ -278,7 +280,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
             filterTitleParts,
             style: const TextStyle(fontSize: 16),
           ),
-          shadowColor: Theme.of(context).colorScheme.shadow,
+          forceMaterialTransparency: true,
         ),
         body: _buildExpensesList(filteredExpenses)
       )

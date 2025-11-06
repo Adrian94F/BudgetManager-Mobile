@@ -214,7 +214,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return Row(
         children: [
           _navigationRail(),
-          const VerticalDivider(thickness: 1, width: 1),
           Expanded(
             child: Scaffold(
               appBar: AppBar(
@@ -222,9 +221,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   _currentIndex < 4 ? monthDates : _screens[_currentIndex].title!,
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-                shadowColor: Theme.of(context).colorScheme.shadow,
+                forceMaterialTransparency: true,
                 actions: _monthMenu(context, _monthRelated, months),
-                // No back button needed here as it's not a separate screen
+                leading: _previousIndex != null
+                    ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () {
+                    setState(() {
+                      _currentIndex = _previousIndex!;
+                      _previousIndex = null;  // Clear the previous index
+                    });
+                  },
+                )
+                    : null,
               ),
               body: body,
             ),
@@ -248,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 : _screens[_currentIndex].title!,
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          shadowColor: Theme.of(context).colorScheme.shadow,
+          forceMaterialTransparency: true,
           actions: _monthMenu(context, _monthRelated, months),
           leading: _previousIndex != null
               ? IconButton(
