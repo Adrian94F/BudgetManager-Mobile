@@ -258,8 +258,10 @@ class FabMenu extends StatelessWidget {
       List<dynamic> expenses, int nOfCategories) {
     Map<int, int> categoryCounts = {};
     for (var expense in expenses) {
-      int categoryId = expense['category'];
-      categoryCounts[categoryId] = (categoryCounts[categoryId] ?? 0) + 1;
+      if (!expense['is_monthly']) {
+        int categoryId = expense['category'];
+        categoryCounts[categoryId] = (categoryCounts[categoryId] ?? 0) + 1;
+      }
     }
     List<MapEntry<int, int>> categoryCountsList =
     categoryCounts.entries.toList();

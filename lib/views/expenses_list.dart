@@ -309,19 +309,7 @@ class _ExpensesListViewState extends State<ExpensesListView> {
     );
   }
 
-  List<int> getTopNCategories(List<dynamic> expenses, int nOfCategories) {
-    Map<int, int> categoryCounts = {};
-    for (var expense in expenses) {
-      int categoryId = expense['category'];
-      categoryCounts[categoryId] = (categoryCounts[categoryId] ?? 0) + 1;
-    }
-    List<MapEntry<int, int>> categoryCountsList = categoryCounts.entries.toList();
-    categoryCountsList.sort((a, b) => b.value.compareTo(a.value));
-    return categoryCountsList.take(nOfCategories).map((entry) => entry.key).toList();
-  }
-
   void _showExpenseDetailsDialog(Map<String, dynamic>? expense) {
-    final topCategories = getTopNCategories(widget.expenses, 5);
     Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => ExpenseDetails(
@@ -329,7 +317,6 @@ class _ExpensesListViewState extends State<ExpensesListView> {
           categories: widget.categories,
           monthId: widget.monthId,
           preferredCategoryId: expense != null ? expense['category'] : widget.filter.category,
-          topCategories: topCategories,
           preferredDate: expense != null ? DateTime.parse(expense['date']) : widget.filter.date,
         ))
     ).then(
