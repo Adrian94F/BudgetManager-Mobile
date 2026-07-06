@@ -125,6 +125,34 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> delete(String url, Map<String, dynamic> body) async {
+    final accessToken = await storage.read(key: "access_token");
+    final baseUrl = await getBaseUrl();
+
+    final response = await http.delete(
+      Uri.parse("$baseUrl/$url"),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(body),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      if (response.body.isNotEmpty) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        return {};
+      }
+    } else if (response.statusCode == 401) {
+      await refreshToken();
+      return delete(url, body);
+    } else {
+      print("Error ${response.statusCode}: ${response.body}");
+      throw Exception("Failed to delete data. Error ${response.statusCode}: ${response.body}");
+    }
+  }
+
   Future<void> logout() async {
     await storage.delete(key: "access_token");
     await storage.delete(key: "refresh_token");

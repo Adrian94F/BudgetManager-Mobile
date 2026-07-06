@@ -369,11 +369,10 @@ class _ExpensesListViewState extends State<ExpensesListView> {
                     try {
                       final authService = AuthService();
                       final requestData = {
-                        'id': expense['id'],
-                        'remove': 'true'
+                        'id': expense['id']
                       };
 
-                      await authService.post("expense/", requestData);
+                      await authService.delete("expense/", requestData);
                       Navigator.pop(context);
                       widget.refreshParent();
                     } catch (e) {

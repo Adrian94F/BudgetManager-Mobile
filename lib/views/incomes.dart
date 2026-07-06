@@ -195,11 +195,10 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     try {
                       final authService = AuthService();
                       final requestData = {
-                        'id': income['id'],
-                        'remove': 'true'
+                        'id': income['id']
                       };
 
-                      await authService.post("income/", requestData);
+                      await authService.delete("income/", requestData);
                       Navigator.pop(context);
                       widget.refreshParent();
                     } catch (e) {
