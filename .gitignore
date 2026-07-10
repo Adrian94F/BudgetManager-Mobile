@@ -48,3 +48,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .env
+
+# Generated files
+*.ipa
+*.lock
