@@ -11,7 +11,7 @@ class AuthService {
   static Future<bool>? _reauthFuture;
 
   Future<String> getBaseUrl() async {
-    return "${await storage.read(key: "server_url") ?? "http://10.0.2.2:8000"}/api";
+    return "${await storage.read(key: "server_url") ?? "https://budget.frydmanski.cc"}/api";
   }
 
   Future<Map<String, dynamic>> login(String username, String password) async {
